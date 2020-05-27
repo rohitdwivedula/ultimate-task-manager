@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang='en-IN'>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1" charset="utf-8">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.0/css/all.css"
+  integrity="sha384-lZN37f5QGtY3VHgisS14W3ExzMWZxybE1SJSEsQp9S+oqd12jhcu+A56Ebc1zFSJ" crossorigin="anonymous">
+  <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
+  integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.3/umd/popper.min.js"
+  integrity="sha384-vFJXuSJphROIrBnz7yo7oB41mKfc8JzQZiCq4NCceLEaO4IHwicKwpJf9c9IpFgh" crossorigin="anonymous"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/js/bootstrap.min.js"
+  integrity="sha384-alpBpkh1PFOepccYVYDB4do5UnbKysX5WZXm3XxPqe5iKTfUKjNkCk9SaVuEZflJ" crossorigin="anonymous"></script>
+
+  <link rel="stylesheet" href="headnav.css">
+  <link rel="stylesheet" href="taskboard.css">
+
+  <script type="text/javascript" src="tasks.json"> </script>
+  <script>
+  //Sets minimum date for due date to today
+    $(document).ready(function () {
+      var today = new Date();
+      var day=today.getDate()>9?today.getDate():"0"+today.getDate(); // format should be "DD" not "D" e.g 09
+      var month=(today.getMonth()+1)>9?(today.getMonth()+1):"0"+(today.getMonth()+1);
+      var year=today.getFullYear();
+      $("#DueDate").attr('min', year + "-" + month + "-" + day);
+    });
+
+    function displayTasks(){
+      var taskdata= JSON.parse(tasks);
+      var len= taskdata.length;
+      for (var i=0; i<len; i++){
+        var col = $( '<div class="col-sm-4"> </div>' ).appendTo('#taskboard');
+        var task = $('<p class="task"> </p>').appendTo(col);
+        task.append(taskdata[i].name);
+        task.append('<br> Due On: ' + taskdata[i].due_on);
+      }
+    }
+    function subtaskAdd(){
+      // Get the checkbox
+      var checkBox = document.getElementById("subtaskcheck");
+      // Get the output text
+      var stb = document.getElementById("subtaskblock"); //stb=subtaskblock
+
+      // If the checkbox is checked, display the output text
+      if (checkBox.checked == true){
+        stb.style.display = "block";
+      } else {
+        stb.style.display = "none";
+      }
+    }
+  </script>
+</head>
+<body onload="displayTasks()">
+<div class="container-fluid">
+  <!--Modal for Add Task -->
+  <div class="modal" id="myModal">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header add">
+          Add A New Task
+          <button type="button" class="close" data-dismiss="modal">&times;</button>
+        </div>
+        <div class="modal-body" onload="SetMinDate()">
+          <form id="taskform">
+            <table>
+              <tr>
+                <th> <label for="task"> Task:  </label> </th>
+                <td> <input type="text" maxlength="200"> </input> </td>
+              </tr>
+              <tr>
+                <th> <label for="due_date"> Due Date: </label> </th>
+                <td> <input type="date" id="DueDate" min="2020-05-24"> </input> </td>
+              </tr>
+              <tr>
+                <th> <label for="priority">Priority:</label> </th>
+                <td> <select name="priority" form="taskform">
+                  <option value="high">High</option>
+                  <option value="mod">Moderate</option>
+                  <option value="low">Low</option>
+                </select> </td>
+              </tr>
+              <tr>
+                <th> <label for="status">Status:</label> </th>
+                <td> <select name="status" form="taskform">
+                  <option value="new">New</option>
+                  <option value="inp">In-Progress</option>
+                  <option value="comp">Complete*</option>
+                </select> </td>
+              </tr>
+              <tr> </tr> <!--Leaving Space-->
+              <tr>
+                <td colspan=2>
+                  <input type="checkbox" id="subtaskcheck" onclick="subtaskAdd()">
+                  <label for="subtaskcheck"> Add sub-tasks</label><br>
+              </tr>
+          </table>
+          <div id="subtaskblock" style="display:none">
+            How do I add sub-tasks?
+          </div>
+          <p style="font-size:13px">
+              <em> *Complete Tasks will be archived by default and will not appear on taskboard </em> </td>
+          </p>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-danger" data-dismiss="modal">Cancel</button>
+          <button type="button" class="btn btn-primary" data-dismiss="modal">Add Task</button>
+        </div>
+      </div>
+    </div>
+  </div>
+    <div class="row">
+      <div class="col">
+        <header>
+           Ultimate Task Manager
+        </header>
+      </div>
+    </div>
+    <div class="row min-vh-100 flex-column flex-md-row">
+        <aside class="col-12 col-md-2 p-0 bg-dark flex-shrink-1">
+            <nav class="navbar navbar-expand navbar-dark flex-md-column flex-row align-items-start py-2">
+                <div class="collapse navbar-collapse ">
+                    <ul class="flex-md-column flex-row navbar-nav w-100 justify-content-between">
+                        <li class="nav-item">
+                            <a class="nav-link pl-0 text-nowrap" href="#"><i class="fa fa-bullseye fa-fw"></i> <span class="font-weight-bold">Brand</span></a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link pl-0" href="#"><i class="fa fa-book fa-fw"></i> <span class="d-none d-md-inline">Link</span></a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link pl-0" href="#"><i class="fa fa-cog fa-fw"></i> <span class="d-none d-md-inline">Link</span></a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link pl-0" href="#"><i class="fa fa-heart codeply fa-fw"></i> <span class="d-none d-md-inline">Codeply</span></a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link pl-0" href="#"><i class="fa fa-star codeply fa-fw"></i> <span class="d-none d-md-inline">Link</span></a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link pl-0" href="#"><i class="fa fa-star fa-fw"></i> <span class="d-none d-md-inline">Link</span></a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+        </aside>
+        <main class="col bg-faded py-3 flex-grow-1">
+          <div class="card">
+            <div class="card-header">
+              My Tasks
+              <!-- The button is wrapped in a span to use 2 data toggle arguments -->
+              <span style= "float:right" data-toggle="tooltip" title="Add a New Task">
+                <button id="add-button" data-toggle="modal" data-target="#myModal">
+                  <i class="fas fa-plus"></i>
+                </button>
+              </span>
+            </div>
+            <div class="card-body">
+              <div class="row" id="taskboard">
+              </div>
+            </div>
+          </div>
+        </main>
+    </div>
+</div>
+
+</body>
+</html>
