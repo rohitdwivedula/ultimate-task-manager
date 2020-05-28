@@ -114,9 +114,12 @@ class UserInformationView(APIView):
         payload = request.data
 
         keys = ('first_name', 'last_name', 'bio')
-        for key in keys:
-            if payload[key]:
-                user[key] = payload[key]
+        if 'first_name' in payload:
+        	user.first_name = payload['first_name']
+        if 'last_name' in payload:
+        	user.last_name = payload['last_name']
+        if 'bio' in payload:
+        	user.bio = payload['bio']
         
         user.save()
 
@@ -154,14 +157,14 @@ class ForgotPasswordView(APIView):
 
             if not user:
                 # claim that the email has been sent
-                message = {'success': "Email sent, if associated account exists"}
+                message = {'success': "Email sent, if associated account exists111"}
                 return Response(message, status=status.HTTP_200_OK)
 
             user = user[0]
 
             if not user.is_verified:
                 # Send verification email
-                if UserHelper.set_new_activation_token(user, force_set=True, save_user=True):
+                if UserHelper.set_new_activation_token(user, save_user=True):
                     UserHelper.send_activation_email(user, request)
                 message = {'error': "Email not verified. Please verify email before attempting password reset"}
                 return Response(message, status=status.HTTP_403_FORBIDDEN)
@@ -171,15 +174,15 @@ class ForgotPasswordView(APIView):
                 # maximum of one email every 5 minutes
                 message = {'error': "Email was sent in the last 5 minutes"}
                 response = Response(message, status=status.HTTP_429_TOO_MANY_REQUESTS)
-                response['Retry-After'] = timediff
+                response['Retry-After'] = 300 - timediff
                 return response
             else:
                 if UserHelper.set_new_forgot_password_token(user, save_user=True):
                     # split the otp into two 4-digit halves
                     verification_token_str = str(user.verification_token)
                     message = "Your OTP for password reset is " + verification_token_str + " \n\n Please do not share with anyone. Best."
-                    user.email_user("UltimateTaskManager - Forgot Password", message)
-            message = {'success': 'Email with OTP sent, if associated account exists'}
+                    user.email_user("UltimateTaskManager - Forgot Password", message)	
+            message = {'success': 'Email with OTP sent, if associated account exists222'}
             return Response(message, status=status.HTTP_200_OK)
         except KeyError:
             message = {'error': 'Invalid schema'}
@@ -216,7 +219,7 @@ class ForgotPasswordView(APIView):
 
             # generate a new token so that the old one can't be used to reset
             # password again
-            user.verification_token = UserHelper.generate_token(8, numbers_only=True)
+            user.verification_token = UserHelper.generate_token(8)
             UserHelper.update_user_password(user, password)
             user.save()
 
@@ -228,7 +231,7 @@ class ForgotPasswordView(APIView):
             message = {'error': 'Invalid schema'}
             return Response(message, status=status.HTTP_400_BAD_REQUEST)
 
-class VerifyEmailView(View):
+class VerifyEmailView(APIView):
     def get(self, request):
         payload = request.GET
 
@@ -248,7 +251,7 @@ class VerifyEmailView(View):
             user = user[0]
 
             if user.is_verified:
-                context = {'message': "Email already verified"}
+                message = {'message': "Email already verified"}
                 return Response(message, status=status.HTTP_200_OK)
 
             timediff = (timezone.now() - user.generated_at).total_seconds()
@@ -261,16 +264,16 @@ class VerifyEmailView(View):
 
                 UserHelper.send_activation_email(user, request)
 
-                context = {'message': "Link expired. New link has been emailed to you"}
+                message = {'message': "Link expired. New link has been emailed to you"}
                 return Response(message, status=status.HTTP_200_OK)
 
             if not user.verification_token == token:
-                context = {'message': "Invalid token or email id"}
+                message = {'message': "Invalid token or email id"}
                 return Response(message, status=status.HTTP_200_OK)
 
             user.is_verified = True
             # invaldidate the the verification_token
-            user.verification_token = UserHelper.generate_token(8, numbers_only=True)
+            user.verification_token = UserHelper.generate_token(8)
             user.save()
 
             message = "Your account has been activated. Happy planning!"

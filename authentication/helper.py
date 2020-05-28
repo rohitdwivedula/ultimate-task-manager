@@ -60,7 +60,7 @@ class UserHelper:
             if not (timediff > ttl):
                 return False  # don't set token again
 
-        user.verification_token = UserHelper.generate_token(token_length, numbers_only)
+        user.verification_token = UserHelper.generate_token(token_length)
         user.generated_at = timezone.now()
 
         if save_user:
