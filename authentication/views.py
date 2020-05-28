@@ -64,11 +64,11 @@ class LoginView(APIView):
                 message = {'error': "Account not found"}
                 return Response(message, status=status.HTTP_403_FORBIDDEN)
 
-            # if not user.is_verified:
-            #     if UserHelper.set_new_activation_token(user, save_user=True):
-            #         UserHelper.send_activation_email(user, request)
-            #     message = {'error': "Email not verified. Verify email and try again."}
-            #     return Response(message, status=status.HTTP_403_FORBIDDEN)
+            if not user.is_verified:
+                if UserHelper.set_new_activation_token(user, save_user=True):
+                    UserHelper.send_activation_email(user, request)
+                message = {'error': "Email not verified. Verify email and try again."}
+                return Response(message, status=status.HTTP_403_FORBIDDEN)
 
             if not UserHelper.check_user_credentials(user, password):
                 message = {'error': "Invalid email or password"}
@@ -103,33 +103,25 @@ class UserInformationView(APIView):
             'email': user.email,
             'first_name': user.first_name,
             'last_name': user.last_name,
-            'phone': user.phone_number,
+            'bio': user.bio,
+            'date_joined': user.date_joined
         }
         return Response(message, status=status.HTTP_200_OK)
 
-    def patch(self, request):
+    def post(self, request):
         """Update the user's information"""
         user = request.user
         payload = request.data
 
-        keys = ('first_name', 'last_name', 'phone_number')
-
-        if not (set(keys) & set(payload.keys())):
-            message = {'error': "Invalid schema"}
-            return Response(message, status=status.HTTP_400_BAD_REQUEST)
-
-        first_name = payload.get('first_name', user.first_name)
-        last_name = payload.get('last_name', user.last_name)
-        phone_number = payload.get('phone_number', user.phone_number)
-
-        user.first_name = first_name
-        user.last_name = last_name
-        user.phone_number = phone_number
+        keys = ('first_name', 'last_name', 'bio')
+        for key in keys:
+            if payload[key]:
+                user[key] = payload[key]
+        
         user.save()
 
         message = {'success': "Successfully updated user information"}
         return Response(message, status=status.HTTP_200_OK)
-
 
 class ChangeCredentialsView(APIView):
     """View class to change user credentials"""
@@ -137,22 +129,15 @@ class ChangeCredentialsView(APIView):
 
     def post(self, request):
         """Change the user credentials"""
-
         user = request.user
         payload = request.data
-
         password = payload['password']
-        logout = payload['logout']
 
         if not password:
             message = {'error': 'New password is invalid'}
             return Response(message, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
 
         UserHelper.update_user_password(user, password)
-
-        if logout:
-            # TODO: Find a way to revoke user tokens and close all sessions
-            pass
 
         message = {'success': "Successfully updated user credentials"}
         return Response(message, status=status.HTTP_200_OK)
