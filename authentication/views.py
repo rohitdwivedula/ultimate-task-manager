@@ -9,7 +9,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 
 from authentication.models import User
 from authentication.helper import UserHelper
-from tasks.conf import JWT_COOKIE_KEY
+from authentication.conf import JWT_COOKIE_KEY
 
 from django.http import HttpResponse
 from django.views.generic import View
@@ -252,7 +252,7 @@ class VerifyEmailView(View):
             token = payload['token']
 
             if not token:
-            	message = {'error': "Invalid Email ID or token"}
+                message = {'error': "Invalid Email ID or token"}
                 return Response(message, status=status.HTTP_400_BAD_REQUEST)
 
             user = User.objects.filter(email=email)
@@ -295,4 +295,4 @@ class VerifyEmailView(View):
 
         except (KeyError):
             message = {'message': "Invalid token or email id"}
-			return Response(message, status=status.HTTP_400_BAD_REQUEST)
+            return Response(message, status=status.HTTP_400_BAD_REQUEST)
