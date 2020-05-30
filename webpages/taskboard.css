@@ -9,9 +9,18 @@
   background-color: #20368F;
   color: white;
   padding:10px;
+  padding-bottom: 25px;
   border-radius: 10px;
 }
-
+.task-button{
+  background-color: inherit;
+  color: inherit;
+  border:0px;
+  width:10%;
+}
+.edit-button{
+  margin-right: 5px;
+}
 .card-header{
   background-color:#CD9703 ;
   color: #00172D;

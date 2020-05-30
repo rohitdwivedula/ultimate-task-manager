@@ -27,6 +27,7 @@
       $("#DueDate").attr('min', year + "-" + month + "-" + day);
     });
 
+
     function displayTasks(){
       var taskdata= JSON.parse(tasks);
       var len= taskdata.length;
@@ -35,8 +36,11 @@
         var task = $('<p class="task"> </p>').appendTo(col);
         task.append(taskdata[i].name);
         task.append('<br> Due On: ' + taskdata[i].due_on);
+        task.append('<br> <button onclick="DelTask(\'' + taskdata[i] + '\')" style="float:right" class="fas fa-trash-alt task-button"></button>');
+        task.append('<span data-toggle="modal" data-target="#myModal"><button onclick="EditTask(\'' + taskdata[i] + '\')" style="float:right" class="fas fa-edit task-button edit-button"></button></span>');
       }
     }
+
     function subtaskAdd(){
       // Get the checkbox
       var checkBox = document.getElementById("subtaskcheck");
@@ -50,6 +54,13 @@
         stb.style.display = "none";
       }
     }
+    function SubmitTask(){
+      //$(#taskform).submit();
+      location.reload();
+    }
+    function Reload(){ //Reloads page when you close the modal to reset it to defaults
+      location.reload();
+    }
   </script>
 </head>
 <body onload="displayTasks()">
@@ -60,10 +71,10 @@
       <div class="modal-content">
         <div class="modal-header add">
           Add A New Task
-          <button type="button" class="close" data-dismiss="modal">&times;</button>
+          <span onclick="Reload()"> <button type="button" class="close" data-dismiss="modal">&times;</button> </span>
         </div>
-        <div class="modal-body" onload="SetMinDate()">
-          <form id="taskform">
+        <div class="modal-body">
+          <form id="taskform" action="/add_page.php" method="POST">
             <table>
               <tr>
                 <th> <label for="task"> Task:  </label> </th>
@@ -105,13 +116,13 @@
           </form>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-danger" data-dismiss="modal">Cancel</button>
-          <button type="button" class="btn btn-primary" data-dismiss="modal">Add Task</button>
+          <span onclick="Reload()"> <button type="button" class="btn btn-danger" data-dismiss="modal">Cancel</button> </span>
+          <button type="button" class="btn btn-primary" data-dismiss="modal" id="submitTask" onclick="SubmitTask()">Add Task</button>
         </div>
       </div>
     </div>
   </div>
-    <div class="row">
+    <div class="row sticky-top">
       <div class="col">
         <header>
            Ultimate Task Manager
