@@ -11,6 +11,20 @@
 
   <link rel="stylesheet" type="text/css" href="{% static 'tasks/headnav.css' %}">
   <link rel="stylesheet" type="text/css" href="{% static 'tasks/login.css' %}">
+  <script>
+    $(document).ready(function(){
+      $("form").submit(function(event){
+        event.preventDefault();
+        var id = $("#email").val();
+        var pwd = $("#pwd").val();
+        $.post("/api/auth/login/", {email: id, password: pwd}, function(data){
+          localStorage.setItem('access_token', data.access_token);
+          localStorage.setItem('refresh_token', data.refresh_token);   
+        });
+      });
+    });
+  </script>
+
 </head>
 <body>
 <div class="container-fluid">
@@ -41,19 +55,20 @@
                 <tr>
                   <th> <label for="password" class="fas fa-lock"> </label> </th>
                   <td>
-                    <input type="password" name="password" placeholder="Password"> </input>
+                    <input type="password" id="pwd" name="password" placeholder="Password"> </input>
                   </td>
                 </tr>
                 <tr>
-                  <td colspan=2> <a href="forgotpw.html" style="font-size:12px;float:right"> Forgot Password? </a> </td>
+                  <td colspan=2> <a href="/forgot" style="font-size:12px;float:right"> Forgot Password? </a> </td>
                 </tr>
                 <tr> <td> <br> </td> </tr>
               </table>
               <input type="submit" style="width:30%" value="Login"> </input>
+              <!-- <button id="submit_button" value="Submit" name="Submit">Submit</button> -->
             </form>
             <br>
             <div style="font-size:12px">
-              <a href="signup.html"> Don't have an account?<br> Sign Up for free here! </a>
+              <a href="/sign-up"> Don't have an account?<br> Sign Up for free here! </a>
             </div>
           </div>
         </div>
