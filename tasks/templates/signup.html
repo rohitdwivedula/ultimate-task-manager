@@ -1,3 +1,5 @@
+{% load static %}
+
 <!DOCTYPE html>
 <html lang='en-IN'>
 <head>
@@ -7,8 +9,12 @@
   <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.0/css/all.css"
   integrity="sha384-lZN37f5QGtY3VHgisS14W3ExzMWZxybE1SJSEsQp9S+oqd12jhcu+A56Ebc1zFSJ" crossorigin="anonymous">
 
-  <link rel="stylesheet" href="headnav.css">
-  <link rel="stylesheet" href="login.css">
+  <link rel="stylesheet" type="text/css" href="{% static 'tasks/headnav.css' %}">
+  <link rel="stylesheet" type="text/css" href="{% static 'tasks/login.css' %}">
+
+  <script>
+
+  </script>
 </head>
 <body>
 <div class="container-fluid">
@@ -24,34 +30,41 @@
       <div class="col-md-4">
         <div class="card" style="text-align:center">
           <div class="card-header" style="text-align:left">
-            Login
+            Sign Up
           </div>
           <div class="card-body">
-            <form>
+            <form id = "signupform">
               <table style="margin:auto">
                 <tr>
-                  <th><label class="fas fa-envelope" for="email"></label> </th>
+                  <td>
+                    <input type="text" id="first_name" name="first_name" placeholder="First Name"> </input>
+                  </td>
+                </tr>
+                <tr> <td> <br> </td> </tr>
+                <tr>
+                  <td>
+                    <input type="text" name="last_name" placeholder="Last Name"> </input>
+                  </td>
+                </tr>
+                <tr> <td> <br> </td> </tr>
+                <tr>
                   <td>
                     <input type="text" id="email" name = "email" placeholder="Email ID"> </input>
                   </td>
                 </tr>
                 <tr> <td> <br> </td> </tr>
                 <tr>
-                  <th> <label for="password" class="fas fa-lock"> </label> </th>
                   <td>
-                    <input type="password" name="password" placeholder="Password"> </input>
+                    <input type="password" id="password" name="password" placeholder="Password"> </input>
                   </td>
-                </tr>
-                <tr>
-                  <td colspan=2> <a href="forgotpw.html" style="font-size:12px;float:right"> Forgot Password? </a> </td>
                 </tr>
                 <tr> <td> <br> </td> </tr>
               </table>
-              <input type="submit" style="width:30%" value="Login"> </input>
+              <input type="submit" style="width:30%" value="Sign Up"> </input>
             </form>
             <br>
             <div style="font-size:12px">
-              <a href="signup.html"> Don't have an account?<br> Sign Up for free here! </a>
+              <a href="login.html"> Have an existing account?<br> Log In here! </a>
             </div>
           </div>
         </div>

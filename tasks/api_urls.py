@@ -1,7 +1,7 @@
 from django.urls import path
 from rest_framework.urlpatterns import format_suffix_patterns
 
-import tasks.views as api_views
+import tasks.api_views as api_views
 
 urlpatterns = [
 	# GET all tasks or create (POST) a task

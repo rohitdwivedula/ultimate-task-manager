@@ -1,1 +1,0 @@
-tasks = '[{"taskid":"101", "name" : "Pick Up Milk", "due_on" : "25-05-2000", "priority":"Moderate", "status":"In Progress"},{"taskid":"102","name" : "Do Laundry", "due_on" : "25-06-2018", "priority":"Moderate", "status":"New"}]'; 

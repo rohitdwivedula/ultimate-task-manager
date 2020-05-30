@@ -1,3 +1,5 @@
+{% load static %}
+
 <!DOCTYPE html>
 <html lang='en-IN'>
 <head>
@@ -7,11 +9,9 @@
   <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.0/css/all.css"
   integrity="sha384-lZN37f5QGtY3VHgisS14W3ExzMWZxybE1SJSEsQp9S+oqd12jhcu+A56Ebc1zFSJ" crossorigin="anonymous">
 
-  <link rel="stylesheet" href="headnav.css">
-  <link rel="stylesheet" href="login.css">
-  <script>
+  <link rel="stylesheet" type="text/css" href="{% static 'tasks/headnav.css' %}">
+  <link rel="stylesheet" type="text/css" href="{% static 'tasks/login.css' %}">
 
-  </script>
 </head>
 <body>
 <div class="container-fluid">
@@ -27,42 +27,22 @@
       <div class="col-md-4">
         <div class="card" style="text-align:center">
           <div class="card-header" style="text-align:left">
-            Sign Up
+            Forgot Password
           </div>
           <div class="card-body">
-            <form id = "signupform">
+            <form id="forgotpw" method="GET" action="/forgot/">
               <table style="margin:auto">
                 <tr>
-                  <td>
-                    <input type="text" id="first_name" name="first_name" placeholder="First Name"> </input>
-                  </td>
-                </tr>
-                <tr> <td> <br> </td> </tr>
-                <tr>
-                  <td>
-                    <input type="text" name="last_name" placeholder="Last Name"> </input>
-                  </td>
-                </tr>
-                <tr> <td> <br> </td> </tr>
-                <tr>
+                  <th><label class="fas fa-envelope" for="email"></label> </th>
                   <td>
                     <input type="text" id="email" name = "email" placeholder="Email ID"> </input>
                   </td>
                 </tr>
                 <tr> <td> <br> </td> </tr>
-                <tr>
-                  <td>
-                    <input type="password" id="password" name="password" placeholder="Password"> </input>
-                  </td>
-                </tr>
-                <tr> <td> <br> </td> </tr>
               </table>
-              <input type="submit" style="width:30%" value="Sign Up"> </input>
+              <input type="submit" style="width:35%" value="Send Reset Email"> </input>
             </form>
             <br>
-            <div style="font-size:12px">
-              <a href="login.html"> Have an existing account?<br> Log In here! </a>
-            </div>
           </div>
         </div>
     </div>
