@@ -18,9 +18,13 @@
         var id = $("#email").val();
         var pwd = $("#pwd").val();
         $.post("/api/auth/login/", {email: id, password: pwd}, function(data){
-          localStorage.setItem('access_token', data.access_token);
-          localStorage.setItem('refresh_token', data.refresh_token);   
-        });
+          sessionStorage.setItem('access_token', data.access_token);
+          sessionStorage.setItem('refresh_token', data.refresh_token);
+          $(location).attr('href', '/profile');
+        })
+        .fail(function(){
+          alert("Invalid Login Credentials. <br> Try again.");
+        })
       });
     });
   </script>

@@ -1,5 +1,5 @@
 from django.views.generic import View
-from django.shortcuts import render 
+from django.shortcuts import render
 
 def login_view(request):
     return render(request, "login.html")
@@ -12,3 +12,9 @@ def sign_up_view(request):
 
 def taskboard_view(request):
 	return render(request, "taskboard.html")
+
+def profile_view(request):
+	return render(request, "profile.html")
+
+def editprofile_view(request):
+	return render(request, "editprofile.html")

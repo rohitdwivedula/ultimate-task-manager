@@ -3,13 +3,13 @@
 <!DOCTYPE html>
 <html lang='en-IN'>
 <head>
+  <title> UTM- Taskboard </title>
   <meta name="viewport" content="width=device-width, initial-scale=1" charset="utf-8">
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css">
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
   <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.0/css/all.css"
   integrity="sha384-lZN37f5QGtY3VHgisS14W3ExzMWZxybE1SJSEsQp9S+oqd12jhcu+A56Ebc1zFSJ" crossorigin="anonymous">
-  <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
-  integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+  <script src="https://code.jquery.com/jquery-3.1.1.min.js"> </script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.3/umd/popper.min.js"
   integrity="sha384-vFJXuSJphROIrBnz7yo7oB41mKfc8JzQZiCq4NCceLEaO4IHwicKwpJf9c9IpFgh" crossorigin="anonymous"></script>
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/js/bootstrap.min.js"
@@ -18,8 +18,6 @@
   <link rel="stylesheet" type="text/css" href="{% static 'tasks/headnav.css' %}">
   <link rel="stylesheet" type="text/css" href="{% static 'tasks/taskboard.css' %}">
 
-
-  <script type="text/javascript" src="{% static 'tasks/tasks.json' %}"> </script>
   <script>
   //Sets minimum date for due date to today
     $(document).ready(function () {
@@ -28,21 +26,30 @@
       var month=(today.getMonth()+1)>9?(today.getMonth()+1):"0"+(today.getMonth()+1);
       var year=today.getFullYear();
       $("#DueDate").attr('min', year + "-" + month + "-" + day);
+
+
     });
+    $.ajax({
+  url: "/api/main/tasks/",
+  headers: {"Authorization": "Bearer " + sessionStorage.getItem('access_token')},
+  type: "GET",
+  success: function(taskdata){
+   var len= taskdata.length;
+   for (var i=0; i<len; i++){
+      var col = $( '<div class="col-sm-4"> </div>' ).appendTo('#taskboard');
+      var task = $('<p class="task"> </p>').appendTo(col);
+      task.append(taskdata[i].name);
+      task.append('<br> Due On: ' + taskdata[i].due_on);
+      task.append('<br> <button onclick="DelTask(\'' + taskdata[i] + '\')" style="float:right" class="fas fa-trash-alt task-button"></button>');
+      task.append('<span data-toggle="modal" data-target="#myModal"><button onclick="EditTask(\'' + taskdata[i] + '\')" style="float:right" class="fas fa-edit task-button edit-button"></button></span>');
 
+   }
+  }
+  })
+.fail(function(){
+  $(location).attr('href', '/login');
+  })
 
-    function displayTasks(){
-      var taskdata= JSON.parse(tasks);
-      var len= taskdata.length;
-      for (var i=0; i<len; i++){
-        var col = $( '<div class="col-sm-4"> </div>' ).appendTo('#taskboard');
-        var task = $('<p class="task"> </p>').appendTo(col);
-        task.append(taskdata[i].name);
-        task.append('<br> Due On: ' + taskdata[i].due_on);
-        task.append('<br> <button onclick="DelTask(\'' + taskdata[i] + '\')" style="float:right" class="fas fa-trash-alt task-button"></button>');
-        task.append('<span data-toggle="modal" data-target="#myModal"><button onclick="EditTask(\'' + taskdata[i] + '\')" style="float:right" class="fas fa-edit task-button edit-button"></button></span>');
-      }
-    }
 
     function subtaskAdd(){
       // Get the checkbox
@@ -66,7 +73,7 @@
     }
   </script>
 </head>
-<body onload="displayTasks()">
+<body>
 <div class="container-fluid">
   <!--Modal for Add Task -->
   <div class="modal" id="myModal">
@@ -134,30 +141,24 @@
     </div>
     <div class="row min-vh-100 flex-column flex-md-row">
         <aside class="col-12 col-md-2 p-0 bg-dark flex-shrink-1">
-            <nav class="navbar navbar-expand navbar-dark flex-md-column flex-row align-items-start py-2">
-                <div class="collapse navbar-collapse ">
-                    <ul class="flex-md-column flex-row navbar-nav w-100 justify-content-between">
-                        <li class="nav-item">
-                            <a class="nav-link pl-0 text-nowrap" href="#"><i class="fa fa-bullseye fa-fw"></i> <span class="font-weight-bold">Brand</span></a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link pl-0" href="#"><i class="fa fa-book fa-fw"></i> <span class="d-none d-md-inline">Link</span></a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link pl-0" href="#"><i class="fa fa-cog fa-fw"></i> <span class="d-none d-md-inline">Link</span></a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link pl-0" href="#"><i class="fa fa-heart codeply fa-fw"></i> <span class="d-none d-md-inline">Codeply</span></a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link pl-0" href="#"><i class="fa fa-star codeply fa-fw"></i> <span class="d-none d-md-inline">Link</span></a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link pl-0" href="#"><i class="fa fa-star fa-fw"></i> <span class="d-none d-md-inline">Link</span></a>
-                        </li>
-                    </ul>
-                </div>
-            </nav>
+          <nav class="navbar navbar-expand navbar-dark flex-md-column flex-row align-items-start py-2">
+              <div class="collapse navbar-collapse ">
+                  <ul class="flex-md-column flex-row navbar-nav w-100 justify-content-between">
+                      <li class="nav-item">
+                          <a class="nav-link pl-0 text-nowrap" href="/profile"><i class="fas fa-user-circle fa-fw"></i> <span class="d-none d-md-inline">My Account</span></a>
+                      </li>
+                      <li class="nav-item">
+                          <a class="nav-link pl-0" href="/taskboard"><i class="fas fa-tasks fa-fw"></i> <span class="d-none d-md-inline">My Tasks</span></a>
+                      </li>
+                      <li class="nav-item">
+                          <a class="nav-link pl-0" href="#"><i class="fa fa-cog fa-fw"></i> <span class="d-none d-md-inline">Settings</span></a>
+                      </li>
+                      <li class="nav-item">
+                          <a class="nav-link pl-0" href="#"><i class="fas fa-sign-out-alt fa-fw"></i> <span class="d-none d-md-inline">Sign Out</span></a>
+                      </li>
+                  </ul>
+              </div>
+          </nav>
         </aside>
         <main class="col bg-faded py-3 flex-grow-1">
           <div class="card">
