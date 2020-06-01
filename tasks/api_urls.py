@@ -23,6 +23,5 @@ urlpatterns = [
 	path('subtasks/<uuid:subtask_uuid>/', api_views.SubTaskView.as_view()),
 ]
 
-# TODO: Add and remove labels from a task
 
 urlpatterns = format_suffix_patterns(urlpatterns)

@@ -1,4 +1,4 @@
-# URL - BASE_URL/auth/
+# URL - BASE_URL/api/auth/
 
 Some of these views require users to be logged in to access. Requests made to such views must contain a header with key `Authorization` and value `Bearer {{access_token}}`, where `access_token` is a valid, non-expired access token. If the token is not valid (eg: expired, refresh token is sent instead of access token etc), then a `401 Unauthorized` is returned. After a user has signed up the account will not be active until the email has been verified. 
 
@@ -79,7 +79,7 @@ Returns the basic information of current user. Response format:
 {
     "first_name": "Test", 
     "last_name": "User", 
-    "phone": "9912728881", 
+    "bio": "This is my bio", 
     "email": "test@gmail.com"
 }
 ```
@@ -87,13 +87,13 @@ Returns the basic information of current user. Response format:
 
 ## [POST] /me/ (requires login)
 
-Update user information: `first_name, last_name, phone`. Only send the attributes that need to be updated (you can edit only first name by just sending `{"first_name": "New Name Here"}` as the post body. 
+Update user information: `first_name, last_name, bio`. Only send the attributes that need to be updated (you can edit only first name by just sending `{"first_name": "New Name Here"}` as the post body. 
 
 ```
 {
    "first_name": "ardula",
    "last_name": "testing123"
-   "phone": "9912728881"
+   "bio": "This is a new bio."
 }
 ```
 

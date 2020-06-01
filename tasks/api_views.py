@@ -1,21 +1,40 @@
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.views import APIView, Response
 from django.db import IntegrityError, transaction
+from django.core.exceptions import ValidationError
+import math
 
 from authentication.models import User
 from tasks.models import Label, Task, SubTask
 from tasks.serializers import LabelSerializer, TaskSerializer, SubTaskSerializer
 from tasks.submodels import TaskStatus, SubTaskStatus
 
-
 class AllTasksView(APIView):
     permission_classes = (IsAuthenticated, )
     def get(self, request):
-        user = request.user
-        tasks = Task.objects.filter(user=user).order_by("due_on")
-        serializer = TaskSerializer(tasks, many=True, context={"request": request})
-        return Response(serializer.data)
+        filters = {"user": request.user}
+        for key in request.GET:
+            if key != "page":
+                filters[key] = request.GET[key]
+        try:
+            tasks = Task.objects.filter(**filters).order_by("due_on")
+            paginator = PageNumberPagination()
+            paginator.page_size = 15
+            result_page = paginator.paginate_queryset(tasks, request)
+            serializer = TaskSerializer(result_page, many=True, context={"request": request})
+            return Response({
+                "current_page": request.GET['page'],
+                "total_pages": math.ceil(len(tasks)/15),
+                "count": len(result_page),
+                "data": serializer.data
+            })
+        except:
+            return Response(data={
+                "message": "Bad request. The allowed fields are given in this response. You can use standard Django Queryset filters",
+                "allowed_fields": "created_at, desc, due_on, labels, name, status, subtasks, user, user_id, uuid"
+            }, status=status.HTTP_400_BAD_REQUEST)
 
     @transaction.atomic
     def post(self, request):
@@ -24,16 +43,30 @@ class AllTasksView(APIView):
         new_task = Task(user=user, name=payload['name'], desc=payload['desc'], due_on=payload['due_on'])
         if "labels" in payload:
             for label in payload["labels"]:
-                label_obj = Label.objects.filter(uuid=label, user=user)
-                if not label_obj:
+                try:
+                    label_obj = Label.objects.filter(uuid=label, user=user)
+                    if not label_obj:
+                        transaction.set_rollback(True)
+                        message = {'error': 'label not found'}
+                        return Response(data=message, status=status.HTTP_400_BAD_REQUEST)    
+                    new_task.labels.add(label_obj[0])
+                except (ValidationError, KeyError):
+                    transaction.set_rollback(True)
                     message = {'error': 'label not found'}
-                    return Response(data=message, status=status.HTTP_400_BAD_REQUEST)    
-                new_task.labels.add(label_obj[0])
+                    return Response(data=message, status=status.HTTP_400_BAD_REQUEST)
         new_task.save()
         if "subtasks" in payload:
             for subtask in payload["subtasks"]:
-                subtask_obj = SubTask(name=subtask["name"], task=new_task)
-                subtask_obj.save()
+                try:
+                    subtask_obj = SubTask(name=subtask, task=new_task)
+                    subtask_obj.save()
+                except (ValidationError, KeyError):
+                    transaction.set_rollback(True)
+                    message= {}
+                    message['error'] = 'Subtask validation failed. SUbtask which caused this error provided below.'
+                    message['subtask'] = subtask
+                    return Response(data=message, status=status.HTTP_400_BAD_REQUEST)
+
         message = {'success': 'Task created.'}
         return Response(data=message, status=status.HTTP_200_OK)
 
@@ -75,8 +108,8 @@ class TaskView(APIView):
             if not task:
                 message = {'error': 'Task ID associated with signed in user does not exist.'}
                 return Response(data=message, status=status.HTTP_400_BAD_REQUEST)
-            if "labels" in payload or "subtasks" in payload:
-                message = {'error': 'Only name, desc, due_on, status can be edited via this endpoint.'}
+            if "subtasks" in payload:
+                message = {'error': 'Only name, desc, due_on, status, labels can be edited via this endpoint.'}
                 return Response(data=message, status=status.HTTP_400_BAD_REQUEST)
             if "name" in payload:
                 task.name = payload["name"]
@@ -94,6 +127,17 @@ class TaskView(APIView):
                 else:
                     message = {'error': 'Acceptable task statuses are: N, IP, C only.'}
                     return Response(data=message, status=status.HTTP_400_BAD_REQUEST)
+            if "labels" in payload:
+                for label in payload["labels"]:
+                    try:
+                        label_obj = Label.objects.filter(uuid=label, user=user)
+                        if not label_obj:
+                            message = {'error': 'label not found'}
+                            return Response(data=message, status=status.HTTP_400_BAD_REQUEST)    
+                        task.labels.add(label_obj[0])
+                    except (ValidationError, KeyError):
+                        message = {'error': 'label not found'}
+                        return Response(data=message, status=status.HTTP_400_BAD_REQUEST)
             task.save()
             message = {'success': 'Task updated successfully.'}
             return Response(data=message, status=status.HTTP_200_OK)
@@ -247,4 +291,7 @@ class AllSubTaskView(APIView):
             return Response(data=message, status=status.HTTP_200_OK)
         except Task.DoesNotExist:
             message = {'error': 'Task ID associated with signed in user does not exist.'}
+            return Response(data=message, status=status.HTTP_400_BAD_REQUEST)
+        except KeyError:
+            message = {'error': 'Subtask must have a name attribute.'}
             return Response(data=message, status=status.HTTP_400_BAD_REQUEST)
