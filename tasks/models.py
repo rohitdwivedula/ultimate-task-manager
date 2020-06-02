@@ -1,7 +1,7 @@
 from authentication.models import User
 from django.db import models
 from django.utils.timezone import now
-from tasks.submodels import TaskStatus, SubTaskStatus
+from tasks.submodels import TaskStatus, SubTaskStatus, Priority
 import uuid
 
 class Label(models.Model):
@@ -22,8 +22,12 @@ class Task(models.Model):
     created_at = models.DateTimeField(default=now)
     due_on = models.DateTimeField()
     status = models.BooleanField()
+    priority = models.CharField(
+        max_length=2,
+        choices=Priority.choices,
+        default=Priority.MEDIUM
+    )
     labels = models.ManyToManyField(Label)
-
     status = models.CharField(
         max_length=3,
         choices=TaskStatus.choices,

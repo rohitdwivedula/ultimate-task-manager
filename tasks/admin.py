@@ -3,7 +3,7 @@ from tasks.models import Label, Task, SubTask
 
 
 class TaskAdmin(admin.ModelAdmin):
-	list_display = ('name', 'user', 'due_on', 'status')
+	list_display = ('name', 'user', 'due_on', 'status', 'priority')
 	list_filter = ('labels',)
 
 class SubTaskAdmin(admin.ModelAdmin):

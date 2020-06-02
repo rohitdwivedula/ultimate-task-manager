@@ -14,6 +14,7 @@ from tasks.submodels import TaskStatus, SubTaskStatus
 class AllTasksView(APIView):
     permission_classes = (IsAuthenticated, )
     def get(self, request):
+        # get a task
         filters = {"user": request.user}
         for key in request.GET:
             if key != "page":
@@ -41,6 +42,11 @@ class AllTasksView(APIView):
         user = request.user
         payload = request.data
         new_task = Task(user=user, name=payload['name'], desc=payload['desc'], due_on=payload['due_on'])
+        if "priority" in payload:
+            if payload["priority"] not in ['L', 'M', 'H']:
+                message = {'error': 'priority must be L, M, H'}
+                return Response(data=message, status=status.HTTP_400_BAD_REQUEST)
+            new_task.priority = payload["priority"]
         if "labels" in payload:
             for label in payload["labels"]:
                 try:
@@ -127,6 +133,11 @@ class TaskView(APIView):
                 else:
                     message = {'error': 'Acceptable task statuses are: N, IP, C only.'}
                     return Response(data=message, status=status.HTTP_400_BAD_REQUEST)
+            if "priority" in payload:
+                if payload["priority"] not in ['L', 'M', 'H']:
+                    message = {'error': 'priority must be L, M, H'}
+                    return Response(data=message, status=status.HTTP_400_BAD_REQUEST)
+                new_task.priority = payload["priority"]
             if "labels" in payload:
                 for label in payload["labels"]:
                     try:

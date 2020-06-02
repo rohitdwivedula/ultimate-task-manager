@@ -9,3 +9,8 @@ class TaskStatus(models.TextChoices):
 class SubTaskStatus(models.TextChoices):
     DONE = 'D', _('DONE')
     NOT_DONE = 'ND', _('NOT DONE') 
+
+class Priority(models.TextChoices):
+	LOW = 'L', _('LOW')
+	MEDIUM = 'M', _('MEDIUM')
+	HIGH = 'H', _('HIGH')
