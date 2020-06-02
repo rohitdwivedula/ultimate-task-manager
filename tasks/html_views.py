@@ -10,6 +10,9 @@ def login_view(request):
 def forgot_pwd_view(request):
     return render(request, "forgotpw.html")
 
+def reset_pwd_view(request):
+    return render(request, "resetpw.html")
+    
 def sign_up_view(request):
     return render(request, "signup.html")
 

@@ -1,0 +1,101 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang='en-IN'>
+<head>
+  <title> UTM- Reset Password </title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" charset="utf-8">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.0/css/all.css"
+  integrity="sha384-lZN37f5QGtY3VHgisS14W3ExzMWZxybE1SJSEsQp9S+oqd12jhcu+A56Ebc1zFSJ" crossorigin="anonymous">
+
+  <link rel="stylesheet" type="text/css" href="{% static 'tasks/headnav.css' %}">
+  <link rel="stylesheet" type="text/css" href="{% static 'tasks/login.css' %}">
+  <script>
+  $(document).ready(function(){
+    $("form").submit(function(event){
+      event.preventDefault();
+      var id = $("#email").val();
+      var pwd= $("#pwd").val();
+      var otp= $("#otp").val();
+      var message="";
+      if(!id){
+        message= message.concat("Please enter an email id. \n");
+      }
+      if(!pwd){
+        message= message.concat("Please enter a new password. \n");
+      }
+      if(!otp){
+        message= message.concat("Please enter your OTP. \n");
+      }
+
+      if (message==""){
+        $.ajax({
+        url: "/api/auth/forgot/",
+        type: "POST",
+        data: {email: id, password: pwd, otp: otp},
+        success: function(){
+            alert("Password reset successfully.\nLogin to continue.");
+            $(location).attr('href', '/login');
+         }
+      })
+      .fail(function(){
+         alert("Password reset fail\n Check your email and OTP")
+      })
+      } else{
+        alert(message);
+      }
+
+    });
+  });
+  </script>
+</head>
+<body>
+<div class="container-fluid">
+  <div class="row sticky-top">
+      <div class="col">
+        <header>
+           Ultimate Task Manager
+        </header>
+      </div>
+  </div>
+    <div class="row min-vh-100">
+      <div class="col-md-4"> <p style="display:none"> Not Empty </p> </div>
+      <div class="col-md-4">
+        <div class="card" style="text-align:center">
+          <div class="card-header" style="text-align:left">
+            Forgot Password
+          </div>
+          <div class="card-body">
+            <form id="forgotpw" method="GET" action="/forgot/">
+              <table style="margin:auto">
+                <tr>
+                  <th><label class="fas fa-envelope" for="email"></label> </th>
+                  <td>
+                    <input type="text" id="email" name = "email" placeholder="Email ID"> </input>
+                  </td>
+                </tr>
+                <tr>
+                  <th><label class="fas fa-lock" for="pwd"></label> </th>
+                  <td>
+                    <input type="password" id="pwd" name = "pwd" placeholder="New Password"> </input>
+                  </td>
+                </tr>
+                <tr>
+                  <th><label class="fas fa-key" for="otp"> </label> </th>
+                  <td>
+                    <input type="password" id="otp" name = "otp" placeholder="Enter OTP"> </input>
+                  </td>
+                </tr>
+                <tr> <td> <br> </td> </tr>
+              </table>
+              <input type="submit" style="width:50%" value="Reset Password"> </input>
+            </form>
+          </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
