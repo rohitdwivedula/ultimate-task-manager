@@ -26,31 +26,90 @@
       var month=(today.getMonth()+1)>9?(today.getMonth()+1):"0"+(today.getMonth()+1);
       var year=today.getFullYear();
       $("#DueDate").attr('min', year + "-" + month + "-" + day);
-
+      DisplayTasks();
+      AddLabels();
 
     });
-    $.ajax({
-  url: "/api/main/tasks/",
-  headers: {"Authorization": "Bearer " + sessionStorage.getItem('access_token')},
-  type: "GET",
-  success: function(taskdata){
-   var len= taskdata.length;
-   for (var i=0; i<len; i++){
-      var col = $( '<div class="col-sm-4"> </div>' ).appendTo('#taskboard');
-      var task = $('<p class="task"> </p>').appendTo(col);
-      task.append(taskdata[i].name);
-      task.append('<br> Due On: ' + taskdata[i].due_on);
-      task.append('<br> <button onclick="DelTask(\'' + taskdata[i] + '\')" style="float:right" class="fas fa-trash-alt task-button"></button>');
-      task.append('<span data-toggle="modal" data-target="#myModal"><button onclick="EditTask(\'' + taskdata[i] + '\')" style="float:right" class="fas fa-edit task-button edit-button"></button></span>');
+    function DisplayTasks(data={"page":"1"}){
+         $.ajax({
+           url: "/api/main/tasks/",
+           headers: {"Authorization": "Bearer " + sessionStorage.getItem('access_token')},
+           type: "GET",
+           data: data,
+           success: function(taskdata){
+             $("#taskboard").empty();
+             var len= taskdata.data.length;
+             var color = "#20368F";
+             for (var i=0; i<len; i++){
+               if(taskdata.data[i].priority=='H'){
+                 color = "#B60A1C";
+               } else if (taskdata.data[i].priority=='M'){
+                 color = "#E39802";
+               } else {
+                 color = "#309143";
+               }
+               if (taskdata.data[i].labels.length==0){
+                 var labels = "None";
+               }
+               else {
+                 var labels = "";
+                 for (var j=0; j<taskdata.data[i].labels.length; j++){
+                   labels = labels.concat(taskdata.data[i].labels[j].name + ' ');
 
-   }
-  }
-  })
-.fail(function(){
-  $(location).attr('href', '/login');
-  })
-
-
+                 }
+               }
+               var col = $( '<div class="col-sm-4"> </div>' ).appendTo('#taskboard');
+               var task = $('<p class="task"> </p>').appendTo(col);
+               task.css("background-color", color);
+               task.append(taskdata.data[i].name);
+               task.append('<br> Due On: ' + taskdata.data[i].due_on.slice(0,10));
+               task.append('<br> Labels: ' + labels);
+               task.append('<br> <button onclick="DelTask(\'' + taskdata.data[i] + '\')" style="float:right" class="fas fa-trash-alt task-button"></button>');
+               task.append('<span data-toggle="modal" data-target="#addModal"><button onclick="EditTask(\'' + taskdata.data[i] + '\')" style="float:right" class="fas fa-edit task-button edit-button"></button></span>');
+             }
+           }
+         })
+         .fail(function(){
+           $(location).attr('href', '/login');
+         })
+       }
+    function AddLabels(){
+      $.ajax({
+        url: "/api/main/labels/",
+        headers: {"Authorization": "Bearer " + sessionStorage.getItem('access_token')},
+        type: "GET",
+        success: function(data){
+          var length = data.length;
+          for (var i=0; i<data.length; i++){
+            var id = data[i].uuid;
+            var name= data[i].name;
+            $("#filterLabels").append('<option value =' + id + '>' + name + '</option>');
+          }
+        }
+        })
+    }
+    function FilterTasks(){
+      $("#taskboard").empty();
+      var selected_label = $("#filterLabels").children("option:selected").val();
+      var fdata = {"page":"1"};
+      if (selected_label){
+        fdata.labels = selected_label;
+      }
+      //lte is before gte is after
+      var from_date = $("#FromDate").val();
+      var to_date = $("#ToDate").val();
+      if (from_date){
+        fdata.due_on__gte = from_date;
+      }
+      if (to_date){
+        fdata.due_on__lte = to_date;
+      }
+      var selected_priority = $("#filterPriority").children("option:selected").val();
+      if (selected_priority){
+        fdata.priority = selected_priority;
+      }
+      DisplayTasks(data=fdata);
+    }
     function subtaskAdd(){
       // Get the checkbox
       var checkBox = document.getElementById("subtaskcheck");
@@ -68,20 +127,23 @@
       //$(#taskform).submit();
       location.reload();
     }
-    function Reload(){ //Reloads page when you close the modal to reset it to defaults
-      location.reload();
+    function DelTask(){
+
+    }
+    function EditTask(){
+
     }
   </script>
 </head>
 <body>
 <div class="container-fluid">
   <!--Modal for Add Task -->
-  <div class="modal" id="myModal">
+  <div class="modal" id="addModal">
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header add">
           Add A New Task
-          <span onclick="Reload()"> <button type="button" class="close" data-dismiss="modal">&times;</button> </span>
+          <button type="button" class="close" data-dismiss="modal">&times;</button>
         </div>
         <div class="modal-body">
           <form id="taskform" action="/add_page.php" method="POST">
@@ -126,12 +188,64 @@
           </form>
         </div>
         <div class="modal-footer">
-          <span onclick="Reload()"> <button type="button" class="btn btn-danger" data-dismiss="modal">Cancel</button> </span>
+          <button type="button" class="btn btn-danger" data-dismiss="modal">Cancel</button>
           <button type="button" class="btn btn-primary" data-dismiss="modal" id="submitTask" onclick="SubmitTask()">Add Task</button>
         </div>
       </div>
     </div>
   </div>
+  <!-- Modal for Filtering -->
+<div class="modal" id="filterModal">
+  <div class="modal-dialog">
+    <div class="modal-content">
+
+      <!-- Modal Header -->
+      <div class="modal-header add">
+        Filter Tasks
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+      </div>
+
+      <!-- Modal body -->
+      <div class="modal-body">
+        <table>
+          <tr>
+          <th> <label for="filterLabels"> Label </label> </th>
+          <td>
+            <select name="filterLabels" id="filterLabels">
+              <option value="">All Labels</option>
+            </select>
+          </td>
+        </tr>
+        <tr>
+          <th> <label for="from_date"> From: </label> </th>
+          <td> <input type="date" id="FromDate"> </input> </td>
+        </tr>
+          <tr>
+            <th> <label for="to_date"> To: </label> </th>
+            <td> <input type="date" id="ToDate"> </input> </td>
+          </tr>
+          <tr>
+            <th> <label for="priority">Priority:</label> </th>
+            <td> <select name="priority" id="filterPriority">
+              <option value=""> Any </option>
+              <option value="H">High</option>
+              <option value="M">Moderate</option>
+              <option value="L">Low</option>
+            </select> </td>
+          </tr>
+        </table>
+      </div>
+
+      <!-- Modal footer -->
+      <div class="modal-footer">
+        <button type="button" class="btn btn-danger" data-dismiss="modal" onclick="DisplayTasks()">Reset Filters</button>
+        <button type ="button" class="btn btn-primary" data-dismiss="modal" onclick="FilterTasks()"> Apply Filters </button>
+      </div>
+
+    </div>
+  </div>
+</div>
+ <!--Main Body -->
     <div class="row sticky-top">
       <div class="col">
         <header>
@@ -165,8 +279,13 @@
             <div class="card-header">
               My Tasks
               <!-- The button is wrapped in a span to use 2 data toggle arguments -->
+              <span style= "float:right" data-toggle="tooltip" title="Filter Tasks">
+                <button class="add-button" data-toggle="modal" data-target="#filterModal">
+                  <i class="fas fa-filter"></i>
+                </button>
+              </span>
               <span style= "float:right" data-toggle="tooltip" title="Add a New Task">
-                <button id="add-button" data-toggle="modal" data-target="#myModal">
+                <button class="add-button" data-toggle="modal" data-target="#addModal">
                   <i class="fas fa-plus"></i>
                 </button>
               </span>

@@ -32,7 +32,7 @@ display:inline-block;
 margin-right: 30px;
 }
 
-#add-button{
+.add-button{
   background-color:inherit;
   color: inherit;
   font-weight: inherit;

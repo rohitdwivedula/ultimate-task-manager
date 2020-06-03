@@ -13,6 +13,40 @@
   <link rel="stylesheet" type="text/css" href="{% static 'tasks/login.css' %}">
 
   <script>
+  $(document).ready(function(){
+    $("form").submit(function(event){
+      event.preventDefault();
+      var fname = $("#first_name").val();
+      var lname = $("#last_name").val();
+      var id = $("#email").val();
+      var pwd = $("#pwd").val();
+      var message = "";
+      if (!fname){
+        message = message.concat("First name missing\n");
+      }
+      if (!lname){
+        message = message.concat("Last name missing");
+      }
+      if (!id){
+        message = message.concat("Email missing");
+      }
+      if(!pwd){
+        message= message.concat("Password missing");
+      }
+      if (message==""){
+        $.post("/api/auth/signup/", {email: id, password: pwd, first_name:fname, last_name:lname}, function(data){
+          ;
+        })
+        .fail(function(){
+          alert("User already exists.");
+        })
+      }
+      else {
+        message = ("Sign Up Failed \n").concat(message);
+        alert(message);
+      }
+    })
+  })
   </script>
 </head>
 <body>
@@ -54,7 +88,7 @@
                 <tr> <td> <br> </td> </tr>
                 <tr>
                   <td>
-                    <input type="password" id="password" name="password" placeholder="Password"> </input>
+                    <input type="password" id="pwd" name="pwd" placeholder="Password"> </input>
                   </td>
                 </tr>
                 <tr> <td> <br> </td> </tr>
