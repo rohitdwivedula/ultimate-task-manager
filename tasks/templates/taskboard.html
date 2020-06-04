@@ -3,7 +3,7 @@
 <!DOCTYPE html>
 <html lang='en-IN'>
 <head>
-  <title> UTM- Taskboard </title>
+  <title> UTM - Taskboard </title>
   <meta name="viewport" content="width=device-width, initial-scale=1" charset="utf-8">
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css">
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
@@ -161,12 +161,15 @@
       var due_on = $("#DueDate").val();
       data.due_on = due_on;
 
-      var labels = [];
+      var labels = new Array();
       $('#addTask').find('input[type="checkbox"]:checked').each(function(){
         lab_id = this.id;
         labels.push(lab_id);
       })
+      console.log(labels)
       data.labels = labels;
+      // data.labels = $().serializeArray(labels);
+      console.log(data);
       return data;
     }
     function AddTask(){
@@ -176,7 +179,16 @@
         url: "/api/main/tasks/",
         headers: {"Authorization": "Bearer " + sessionStorage.getItem('access_token')},
         type: "POST",
-        data: data,
+        datatype: "json",
+        data: {
+          "name": data.name,
+          "desc": data.desc,
+          "status": data.status,
+          "due_on": data.due_on,
+          "status": data.status,
+          "priority": data.priority,
+          "labels": JSON.stringify(data.labels)
+        },
         success: function(taskdata){
           alert("Task created successfully")
           location.reload();

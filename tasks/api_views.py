@@ -5,6 +5,7 @@ from rest_framework.views import APIView, Response
 from django.db import IntegrityError, transaction
 from django.core.exceptions import ValidationError
 import math
+import json
 
 from authentication.models import User
 from tasks.models import Label, Task, SubTask
@@ -37,40 +38,51 @@ class AllTasksView(APIView):
                 "allowed_fields": "created_at, desc, due_on, labels, name, status, subtasks, user, user_id, uuid"
             }, status=status.HTTP_400_BAD_REQUEST)
 
+    @transaction.atomic
     def post(self, request):
-        user = request.user
-        payload = request.data
-        new_task = Task(user=user, name=payload['name'], desc=payload['desc'], due_on=payload['due_on'])
-        if "priority" in payload:
-            if payload["priority"] not in ['L', 'M', 'H']:
-                message = {'error': 'priority must be L, M, H'}
-                return Response(data=message, status=status.HTTP_400_BAD_REQUEST)
-            new_task.priority = payload["priority"]
-        if "labels" in payload:
-            for label in payload["labels"]:
-                try:
-                    label_obj = Label.objects.filter(uuid=label, user=user)
-                    if not label_obj:
+        try:
+            user = request.user
+            payload = request.data
+            print(payload)
+            new_task = Task(user=user, name=payload['name'], desc=payload['desc'], due_on=payload['due_on'])
+            if "priority" in payload:
+                if payload["priority"] not in ['L', 'M', 'H']:
+                    transaction.set_rollback(True)
+                    message = {'error': 'priority must be L, M, H'}
+                    return Response(data=message, status=status.HTTP_400_BAD_REQUEST)
+                new_task.priority = payload["priority"]
+            new_task.save()
+            if "labels" in payload:
+                values = json.loads(payload['labels'])
+                for label in values:
+                    try:
+                        label_obj = Label.objects.filter(uuid=label, user=user)
+                        if not label_obj:
+                            transaction.set_rollback(True)
+                            message = {'error': 'label not found'}
+                            return Response(data=message, status=status.HTTP_400_BAD_REQUEST)    
+                        new_task.labels.add(label_obj[0])
+                    except (ValidationError, KeyError):
+                        transaction.set_rollback(True)
                         message = {'error': 'label not found'}
-                        return Response(data=message, status=status.HTTP_400_BAD_REQUEST)    
-                    new_task.labels.add(label_obj[0])
-                except (ValidationError, KeyError):
-                    message = {'error': 'label not found'}
-                    return Response(data=message, status=status.HTTP_400_BAD_REQUEST)
-        new_task.save()
-        if "subtasks" in payload:
-            for subtask in payload["subtasks"]:
-                try:
-                    subtask_obj = SubTask(name=subtask, task=new_task)
-                    subtask_obj.save()
-                except (ValidationError, KeyError):
-                    message = {}
-                    message['error'] = 'Subtask validation failed. SUbtask which caused this error provided below.'
-                    message['subtask'] = subtask
-                    return Response(data=message, status=status.HTTP_400_BAD_REQUEST)
-        message = {'success': 'Task created.'}
-        return Response(data=message, status=status.HTTP_200_OK)
-
+                        return Response(data=message, status=status.HTTP_400_BAD_REQUEST)
+            new_task.save()
+            if "subtasks" in payload:
+                for subtask in payload["subtasks"]:
+                    try:
+                        subtask_obj = SubTask(name=subtask, task=new_task)
+                        subtask_obj.save()
+                    except (ValidationError, KeyError):
+                        transaction.set_rollback(True)
+                        message = {}
+                        message['error'] = 'Subtask validation failed. Subtask which caused this error provided below.'
+                        message['subtask'] = subtask
+                        return Response(data=message, status=status.HTTP_400_BAD_REQUEST)
+            message = {'success': 'Task created.'}
+            return Response(data=message, status=status.HTTP_200_OK)
+        except IntegrityError:
+            message = {'error': 'Internal Server Error. No edits made.'}
+            return Response(data=message, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class TaskView(APIView):
     permission_classes = (IsAuthenticated, )
@@ -140,7 +152,8 @@ class TaskView(APIView):
             if "labels" in payload:
                 for label in task.labels.all():
                     task.labels.remove(label)
-                for label in payload["labels"]:
+                values = json.loads(payload["labels"])
+                for label in values:
                     try:
                         label_obj = Label.objects.filter(uuid=label, user=user)
                         if not label_obj:
