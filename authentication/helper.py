@@ -6,6 +6,7 @@ from django.template.loader import render_to_string
 from django.utils import timezone
 
 from authentication.models import User
+from tasks.models import Label, Task, SubTask
 
 class UserHelper:
     """Helper methods related to User registration and authentication"""
@@ -88,7 +89,25 @@ class UserHelper:
 
     @staticmethod
     def send_forgot_password_token_email(user, request):
-        # split the otp into two 4 digit halves
         verification_token_str = str(user.verification_token)
         message = "Your One Time Password is: " + verification_token_str + "\n\nDO NOT SHARE THIS OTP."
         user.email_user("Ultimate Task Manager - Forgot Password", message)
+
+    @staticmethod
+    def user_onboarding(user, request):
+        label_names = ["Work", "Shopping", "Personal"]
+        descriptions = ["Plan career related stuff here.", "From vegetables to that pending car repair.", "Everything about your life at home."]
+        for i in range(0, len(label_names)):
+            label_obj = Label(user=user, name=label_names[i], description=descriptions[i])
+            print(label_obj)
+            label_obj.save()
+        sample_task = Task(user=user, name = "Welcome to Ultimate! [Tutorial]", \
+            desc = "Use ultimate to plan your work, chores and play - create tasks, attach sub-goals to tasks and set due dates.")
+        sample_task.save() # you cannot add a label unless the task is saved
+        sample_task.labels.add(label_obj)
+        sample_task.save()
+        subtask_names = ["Try creating a new task", "Manage labels by creating a new label or editing an existing one", "Create subtasks and mark them as complete", "Delete this task once you're done"]
+        for subtask_name in subtask_names:
+            subtask = SubTask(name=subtask_name, task=sample_task)
+            print(subtask)
+            subtask.save()

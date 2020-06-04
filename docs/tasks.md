@@ -16,7 +16,7 @@ Status: HTTP 200
 {
     "current_page": "1",
     "total_pages": 2,
-    "count": 19,
+    "count": 4,
     "data": [ ... ]
 }
 ```

@@ -43,7 +43,7 @@ class SignupView(APIView):
             user.save()
 
             UserHelper.send_activation_email(user, request)
-
+            UserHelper.user_onboarding(user, request)
             message = {'success': "User Creation Successful. Verify email."}
             return Response(message, status=status.HTTP_200_OK)
         except (KeyError):

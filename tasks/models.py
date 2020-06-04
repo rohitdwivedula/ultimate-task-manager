@@ -20,7 +20,7 @@ class Task(models.Model):
     name = models.TextField(max_length = 100, verbose_name='Task Heading')
     desc = models.TextField(max_length = 1000, verbose_name='Task Description')
     created_at = models.DateTimeField(default=now)
-    due_on = models.DateTimeField()
+    due_on = models.DateTimeField(default=now)
     status = models.BooleanField()
     priority = models.CharField(
         max_length=2,

@@ -37,7 +37,6 @@ class AllTasksView(APIView):
                 "allowed_fields": "created_at, desc, due_on, labels, name, status, subtasks, user, user_id, uuid"
             }, status=status.HTTP_400_BAD_REQUEST)
 
-    @transaction.atomic
     def post(self, request):
         user = request.user
         payload = request.data
@@ -52,12 +51,10 @@ class AllTasksView(APIView):
                 try:
                     label_obj = Label.objects.filter(uuid=label, user=user)
                     if not label_obj:
-                        transaction.set_rollback(True)
                         message = {'error': 'label not found'}
                         return Response(data=message, status=status.HTTP_400_BAD_REQUEST)    
                     new_task.labels.add(label_obj[0])
                 except (ValidationError, KeyError):
-                    transaction.set_rollback(True)
                     message = {'error': 'label not found'}
                     return Response(data=message, status=status.HTTP_400_BAD_REQUEST)
         new_task.save()
@@ -67,12 +64,10 @@ class AllTasksView(APIView):
                     subtask_obj = SubTask(name=subtask, task=new_task)
                     subtask_obj.save()
                 except (ValidationError, KeyError):
-                    transaction.set_rollback(True)
-                    message= {}
+                    message = {}
                     message['error'] = 'Subtask validation failed. SUbtask which caused this error provided below.'
                     message['subtask'] = subtask
                     return Response(data=message, status=status.HTTP_400_BAD_REQUEST)
-
         message = {'success': 'Task created.'}
         return Response(data=message, status=status.HTTP_200_OK)
 
@@ -106,16 +101,18 @@ class TaskView(APIView):
             message = {'error': 'Task ID associated with signed in user does not exist.'}
             return Response(data=message, status=status.HTTP_400_BAD_REQUEST)
 
+    @transaction.atomic
     def post(self, request, task_uuid):
         user = request.user
         payload = request.data
         try:
             task = Task.objects.get(uuid=task_uuid, user=user)
             if not task:
-                message = {'error': 'Task ID associated with signed in user does not exist.'}
+                message = {'error': 'Task ID associated with signed in user does not exist. No edits made'}
                 return Response(data=message, status=status.HTTP_400_BAD_REQUEST)
             if "subtasks" in payload:
-                message = {'error': 'Only name, desc, due_on, status, labels can be edited via this endpoint.'}
+                transaction.set_rollback(True)
+                message = {'error': 'Only name, desc, due_on, status, labels can be edited via this endpoint. No edits made'}
                 return Response(data=message, status=status.HTTP_400_BAD_REQUEST)
             if "name" in payload:
                 task.name = payload["name"]
@@ -131,30 +128,40 @@ class TaskView(APIView):
                 elif payload["status"] == 'C':
                     task.status = 'C'
                 else:
-                    message = {'error': 'Acceptable task statuses are: N, IP, C only.'}
+                    transaction.set_rollback(True)
+                    message = {'error': 'Acceptable task statuses are: N, IP, C only. No edits made'}
                     return Response(data=message, status=status.HTTP_400_BAD_REQUEST)
             if "priority" in payload:
                 if payload["priority"] not in ['L', 'M', 'H']:
-                    message = {'error': 'priority must be L, M, H'}
+                    transaction.set_rollback(True)
+                    message = {'error': 'priority must be L, M, H. No edits made'}
                     return Response(data=message, status=status.HTTP_400_BAD_REQUEST)
-                new_task.priority = payload["priority"]
+                task.priority = payload["priority"]
             if "labels" in payload:
+                for label in task.labels.all():
+                    task.labels.remove(label)
                 for label in payload["labels"]:
                     try:
                         label_obj = Label.objects.filter(uuid=label, user=user)
                         if not label_obj:
-                            message = {'error': 'label not found'}
+                            transaction.set_rollback(True)
+                            message = {'error': 'label not found. No edits made'}
                             return Response(data=message, status=status.HTTP_400_BAD_REQUEST)    
                         task.labels.add(label_obj[0])
                     except (ValidationError, KeyError):
-                        message = {'error': 'label not found'}
+                        transaction.set_rollback(True)
+                        message = {'error': 'label not found. No edits made'}
                         return Response(data=message, status=status.HTTP_400_BAD_REQUEST)
             task.save()
             message = {'success': 'Task updated successfully.'}
             return Response(data=message, status=status.HTTP_200_OK)
         except Task.DoesNotExist:
+            transaction.set_rollback(True)
             message = {'error': 'Task ID associated with signed in user does not exist.'}
             return Response(data=message, status=status.HTTP_400_BAD_REQUEST)
+        except IntegrityError:
+            message = {'error': 'Internal Server Error. No edits made.'}
+            return Response(data=message, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class AllLabelsView(APIView):
     permission_classes = (IsAuthenticated, )
