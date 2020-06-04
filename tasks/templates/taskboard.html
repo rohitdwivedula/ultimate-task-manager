@@ -21,6 +21,7 @@
   <script>
   //Sets minimum date for due date to today
     $(document).ready(function () {
+      $('[data-toggle="popover"]').popover();
       var today = new Date();
       var day=today.getDate()>9?today.getDate():"0"+today.getDate(); // format should be "DD" not "D" e.g 09
       var month=(today.getMonth()+1)>9?(today.getMonth()+1):"0"+(today.getMonth()+1);
@@ -64,7 +65,7 @@
                task.append(taskdata.data[i].name);
                task.append('<br> Due On: ' + taskdata.data[i].due_on.slice(0,10));
                task.append('<br> Labels: ' + labels);
-               task.append('<br> <button onclick="DelTask(\'' + taskdata.data[i] + '\')" style="float:right" class="fas fa-trash-alt task-button"></button>');
+               task.append('<br> <button onclick="DelTask(\'' + taskdata.data[i].uuid + '\')" style="float:right" class="fas fa-trash-alt task-button"></button>');
                task.append('<span data-toggle="modal" data-target="#addModal"><button onclick="EditTask(\'' + taskdata.data[i] + '\')" style="float:right" class="fas fa-edit task-button edit-button"></button></span>');
              }
            }
@@ -84,7 +85,19 @@
             var id = data[i].uuid;
             var name= data[i].name;
             $("#filterLabels").append('<option value =' + id + '>' + name + '</option>');
+            if (i==0){
+              $("#first_label").append('<input type="checkbox" id='+ data[i].uuid +'><label for='+ data[i].uuid + '> '+ data[i].name + '</label><br>');
+            }
+            else{
+              var row = $("<tr></tr>").appendTo("#addTask");
+              row.append("<th> </th>");
+              row.append('<td> <input type="checkbox" id='+ data[i].uuid+'><label for='+ data[i].uuid + '> '+ data[i].name + '</label><br> </td>');
+
+            }
           }
+          var row = $("<tr></tr>").appendTo("#addTask");
+          row.append("<th> </th>");
+          row.append('<td></td>');
         }
         })
     }
@@ -123,12 +136,68 @@
         stb.style.display = "none";
       }
     }
-    function SubmitTask(){
-      //$(#taskform).submit();
-      location.reload();
-    }
-    function DelTask(){
+    function AddTask(){
+      //Consolidating the task data for the request
+      var data = {};
 
+      var task = $("#task").val();
+      data.name = task;
+
+      var desc = $("#taskdesc").val();
+      data.desc = desc;
+
+      var status = $("#status").val();
+      data.status = status;
+
+      var priority= $("#priority").val()
+      data.priority = priority;
+
+      var due_on = $("#DueDate").val();
+      data.due_on = due_on;
+
+      var labels = [];
+      $('#addTask').find('input[type="checkbox"]:checked').each(function(){
+        lab_id = this.id;
+        labels.push(lab_id);
+      })
+      data.labels = labels;
+
+      var subtasks = [];
+      //TODO Figure out subtasks
+      data.subtasks = subtasks;
+
+      //Making the request
+      $.ajax({
+        url: "/api/main/tasks/",
+        headers: {"Authorization": "Bearer " + sessionStorage.getItem('access_token')},
+        type: "POST",
+        data: data,
+        success: function(taskdata){
+          alert("Task created successfully")
+        }
+      })
+      .fail(function(){
+        alert("Task creation failed");
+      })
+
+      location.reload();
+
+    }
+    function DelTask(taskid){
+        var url = ("/api/main/tasks/").concat(taskid);
+        var url = url.concat('/');
+        $.ajax({
+          url: url,
+          headers: {"Authorization": "Bearer " + sessionStorage.getItem('access_token')},
+          type: "DELETE",
+          success: function(data){
+            alert("Task deleted successfully");
+            DisplayTasks();
+          }
+          })
+          .fail(function(){
+            alert("Deletion Error");
+          })
     }
     function EditTask(){
 
@@ -146,33 +215,44 @@
           <button type="button" class="close" data-dismiss="modal">&times;</button>
         </div>
         <div class="modal-body">
-          <form id="taskform" action="/add_page.php" method="POST">
-            <table>
+            <table id="addTask">
               <tr>
                 <th> <label for="task"> Task:  </label> </th>
-                <td> <input type="text" maxlength="200"> </input> </td>
+                <td> <input name="task" id="task" type="text" maxlength="200"> </input> </td>
+              </tr>
+              <tr>
+                <th> <label for="taskdesc"> Description:  </label> </th>
+                <td> <input name="taskdesc" id="taskdesc" type="textarea"> </input> </td>
               </tr>
               <tr>
                 <th> <label for="due_date"> Due Date: </label> </th>
-                <td> <input type="date" id="DueDate" min="2020-05-24"> </input> </td>
+                <td> <input type="date" name= "due_date" id="DueDate" min="2020-05-24"> </input> </td>
               </tr>
               <tr>
                 <th> <label for="priority">Priority:</label> </th>
-                <td> <select name="priority" form="taskform">
-                  <option value="high">High</option>
-                  <option value="mod">Moderate</option>
-                  <option value="low">Low</option>
+                <td> <select name="priority" id="priority">
+                  <option value="H">High</option>
+                  <option value="M">Moderate</option>
+                  <option value="L">Low</option>
                 </select> </td>
               </tr>
               <tr>
                 <th> <label for="status">Status:</label> </th>
-                <td> <select name="status" form="taskform">
-                  <option value="new">New</option>
-                  <option value="inp">In-Progress</option>
-                  <option value="comp">Complete*</option>
+                <td> <select name="status" id = "status">
+                  <option value="N">New</option>
+                  <option value="IP">In-Progress</option>
+                  <option value="C">Complete*</option>
                 </select> </td>
               </tr>
-              <tr> </tr> <!--Leaving Space-->
+              <tr>
+                <th> Labels: </th>
+                <td id="first_label">
+                </td>
+              </tr>
+            </table>
+            <!-- The table ended here so that append can be used to dynamically add the labels-->
+            <table>
+              <tr> </tr>
               <tr>
                 <td colspan=2>
                   <input type="checkbox" id="subtaskcheck" onclick="subtaskAdd()">
@@ -185,11 +265,10 @@
           <p style="font-size:13px">
               <em> *Complete Tasks will be archived by default and will not appear on taskboard </em> </td>
           </p>
-          </form>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-danger" data-dismiss="modal">Cancel</button>
-          <button type="button" class="btn btn-primary" data-dismiss="modal" id="submitTask" onclick="SubmitTask()">Add Task</button>
+          <button type="button" class="btn btn-primary" data-dismiss="modal" id="add" onclick="AddTask()">Add Task</button>
         </div>
       </div>
     </div>
