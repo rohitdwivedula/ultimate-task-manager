@@ -10,5 +10,8 @@ urlpatterns = [
 	path('taskboard/', html_views.taskboard_view),
     path('profile/', html_views.profile_view),
 	path('editprofile/', html_views.editprofile_view),
+	path('signout/', html_views.signout_view),
+	path('labels/', html_views.labels_view),
 	path('', html_views.index_view)
+
 ]

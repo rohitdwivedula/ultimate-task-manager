@@ -3,7 +3,7 @@
 <!DOCTYPE html>
 <html lang='en-IN'>
 <head>
-  <title> UTM- Profile </title>
+  <title> UTM- Settings </title>
   <meta name="viewport" content="width=device-width, initial-scale=1" charset="utf-8">
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css">
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
@@ -19,30 +19,9 @@
   <link rel="stylesheet" type="text/css" href="{% static 'tasks/taskboard.css' %}">
 
   <script>
-  //Sets minimum date for due date to today
-    function displayProfile(){ //Gets the tasks associated with the user and displays them.
-    $.ajax({
-    url: "/api/auth/me/",
-    headers: {"Authorization": "Bearer " + sessionStorage.getItem('access_token')},
-    type: "GET",
-    success: function(data){
-      $("#first_name").html(data.first_name);
-      $("#last_name").html(data.last_name);
-      $("#email").html(data.email);
-      $("#ph_n").html(data.phone);
-      $("#bio").html(data.bio);
-     }
-  })
-  .fail(function(){
-     $(location).attr('href', '/login');
-  })
-}
-  function editProfile() {
-      $(location).attr('href', '/editprofile');
-  };
   </script>
 </head>
-<body onload="displayProfile()">
+<body>
 <div class="container-fluid">
     <div class="row sticky-top">
       <div class="col">
@@ -75,33 +54,9 @@
         <main class="col bg-faded py-3 flex-grow-1">
           <div class="card">
             <div class="card-header">
-              Account Information
-              <span style= "float:right" data-toggle="tooltip" title="Edit Account Information">
-                <button class="add-button" onclick="editProfile()">
-                  <i class="fas fa-user-edit"></i>
-                </button>
-              </span>
+              My Labels
             </div>
             <div class="card-body">
-              <table>
-                <tr>
-                  <th> Email ID : </th>
-                  <td id="email"> </td>
-                </tr>
-                <tr>
-                  <th> First Name : </th>
-                  <td id="first_name"> </td>
-                </tr>
-                <tr>
-                  <th> Last Name : </th>
-                  <td id="last_name"> </td>
-                </tr>
-                <tr>
-                  <th> Bio: </th>
-                  <td id="bio"> </td>
-                </tr>
-              </table>
-
             </div>
           </div>
         </main>

@@ -1,0 +1,48 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang='en-IN'>
+<head>
+  <title> UTM- Signed Out </title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" charset="utf-8">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.0/css/all.css"
+  integrity="sha384-lZN37f5QGtY3VHgisS14W3ExzMWZxybE1SJSEsQp9S+oqd12jhcu+A56Ebc1zFSJ" crossorigin="anonymous">
+
+  <link rel="stylesheet" type="text/css" href="{% static 'tasks/headnav.css' %}">
+  <link rel="stylesheet" type="text/css" href="{% static 'tasks/login.css' %}">
+  <script>
+  $(document).ready(function(){
+    sessionStorage.removeItem('access_token');
+    sessionStorage.removeItem('refresh_token');
+  });
+  </script>
+</head>
+<body>
+<div class="container-fluid">
+  <div class="row sticky-top">
+      <div class="col">
+        <header>
+           Ultimate Task Manager
+        </header>
+      </div>
+  </div>
+    <div class="row min-vh-100">
+      <div class="col-md-4"> <p style="display:none"> Not Empty </p> </div>
+      <div class="col-md-4">
+        <div class="card" style="text-align:center">
+          <div class="card-header" style="text-align:left">
+            Signed Out
+          </div>
+          <div class="card-body">
+            You have signed out successfully. <br>
+            Set forth and fulfill your tasks! <br>
+            Click <a href="/login"> here </a> to login again.
+          </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

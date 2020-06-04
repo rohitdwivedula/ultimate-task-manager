@@ -19,18 +19,25 @@
   <link rel="stylesheet" type="text/css" href="{% static 'tasks/taskboard.css' %}">
 
   <script>
-  //Sets minimum date for due date to today
     $(document).ready(function () {
-      $('[data-toggle="popover"]').popover();
+      $('[data-toggle="popover"]').popover(); //Allows popovers to function
+      SetDate();
+      DisplayTasks();
+      AddLabels();
+      $('#addModal').on('hide.bs.modal', function () {
+        RevertChanges();
+      })
+
+    });
+    function SetDate(){
+      //Sets minimum date for due date to today
       var today = new Date();
       var day=today.getDate()>9?today.getDate():"0"+today.getDate(); // format should be "DD" not "D" e.g 09
       var month=(today.getMonth()+1)>9?(today.getMonth()+1):"0"+(today.getMonth()+1);
       var year=today.getFullYear();
       $("#DueDate").attr('min', year + "-" + month + "-" + day);
-      DisplayTasks();
-      AddLabels();
-
-    });
+      $("#DueDate").val(year + "-" + month + "-" + day);
+    }
     function DisplayTasks(data={"page":"1"}){
          $.ajax({
            url: "/api/main/tasks/",
@@ -59,14 +66,14 @@
 
                  }
                }
-               var col = $( '<div class="col-sm-4"> </div>' ).appendTo('#taskboard');
+               var col = $( '<div class="col-sm-4" </div>' ).appendTo('#taskboard');
                var task = $('<p class="task"> </p>').appendTo(col);
                task.css("background-color", color);
-               task.append(taskdata.data[i].name);
+               task.append('<span onclick="ViewTask(\'' + taskdata.data[i].uuid + '\')"> <span class = "clickable" data-toggle="modal" data-target="#addModal"> <b>' + taskdata.data[i].name + '</b></span> </span>');
                task.append('<br> Due On: ' + taskdata.data[i].due_on.slice(0,10));
                task.append('<br> Labels: ' + labels);
                task.append('<br> <button onclick="DelTask(\'' + taskdata.data[i].uuid + '\')" style="float:right" class="fas fa-trash-alt task-button"></button>');
-               task.append('<span data-toggle="modal" data-target="#addModal"><button onclick="EditTask(\'' + taskdata.data[i] + '\')" style="float:right" class="fas fa-edit task-button edit-button"></button></span>');
+               task.append('<span data-toggle="modal" data-target="#addModal"><button onclick="EditTask(\'' + taskdata.data[i].uuid + '\')" style="float:right" class="fas fa-edit task-button edit-button"></button></span>');
              }
            }
          })
@@ -136,8 +143,7 @@
         stb.style.display = "none";
       }
     }
-    function AddTask(){
-      //Consolidating the task data for the request
+    function GetData(){
       var data = {};
 
       var task = $("#task").val();
@@ -161,11 +167,10 @@
         labels.push(lab_id);
       })
       data.labels = labels;
-
-      var subtasks = [];
-      //TODO Figure out subtasks
-      data.subtasks = subtasks;
-
+      return data;
+    }
+    function AddTask(){
+      data = GetData(); //Consolidating the data
       //Making the request
       $.ajax({
         url: "/api/main/tasks/",
@@ -174,33 +179,115 @@
         data: data,
         success: function(taskdata){
           alert("Task created successfully")
+          location.reload();
         }
       })
       .fail(function(){
         alert("Task creation failed");
       })
 
-      location.reload();
-
     }
     function DelTask(taskid){
-        var url = ("/api/main/tasks/").concat(taskid);
-        var url = url.concat('/');
-        $.ajax({
-          url: url,
-          headers: {"Authorization": "Bearer " + sessionStorage.getItem('access_token')},
-          type: "DELETE",
-          success: function(data){
-            alert("Task deleted successfully");
-            DisplayTasks();
-          }
-          })
-          .fail(function(){
-            alert("Deletion Error");
-          })
+        var confirm = window.confirm("Are you sure you want to delete the task?");
+        if (confirm){
+          //Making the required URL with task uuid
+          var url = ("/api/main/tasks/").concat(taskid);
+          var url = url.concat('/');
+          //Sending the request
+          $.ajax({
+            url: url,
+            headers: {"Authorization": "Bearer " + sessionStorage.getItem('access_token')},
+            type: "DELETE",
+            success: function(data){
+              alert("Task deleted successfully");
+              DisplayTasks();
+            }
+            })
+            .fail(function(){
+              alert("Deletion Error");
+            })
+        }
     }
-    function EditTask(){
+    function EditTask(taskid){
+      $("#addModalhead").html("Edit Task");
+      var url = ("/api/main/tasks/").concat(taskid);
+      url = url.concat('/');
+      var func= ("SubmitEdit('").concat(url);
+      func = func.concat("')");
+      $("#submit").attr("onclick", func);
+      $("#submit").html("Edit Task");
+      GetTask(url);
 
+
+    }
+    function SubmitEdit(url){
+      var data = GetData();
+      $.ajax({
+        url: url,
+        headers: {"Authorization": "Bearer " + sessionStorage.getItem('access_token')},
+        type: "POST",
+        data: data,
+        success: function(data){
+          alert("Edited successfully");
+          location.reload();
+        }
+        })
+        .fail(function(){
+          alert("Editing error");
+        })
+    }
+    function GetTask(url){
+      $.ajax({
+        url: url,
+        headers: {"Authorization": "Bearer " + sessionStorage.getItem('access_token')},
+        type: "GET",
+        success: function(data){
+          $("#task").val(data.name);
+          $("#taskdesc").val(data.desc);
+          $("#DueDate").val(data.due_on.slice(0,10));
+          $("#status").val(data.status);
+          $("#priority").val(data.priority);
+          data.labels.forEach(function(item){
+            $("#"+item.uuid).prop("checked", true);
+
+          })
+        }
+        })
+        .fail(function(){
+          return NULL;
+        })
+    }
+    function ViewTask(taskid){
+      //Make changes
+      $("#addModalhead").html("Task Details");
+      $(".nfv").css("display", "none");
+      var url = ("/api/main/tasks/").concat(taskid);
+      var url = url.concat('/');
+      GetTask(url);
+      $( "#task" ).prop( "disabled", true );
+      $( "#taskdesc" ).prop( "disabled", true );
+      $("#DueDate").prop("disabled", true);
+      $("#status").prop("disabled", true);
+      $("#priority").prop("disabled", true);
+      $('#addTask input[type=checkbox]').attr('disabled',true);
+    }
+    function RevertChanges(){
+      $("#addModalhead").html("Add Task");
+      $("#submit").attr("onclick", "AddTask()");
+      $("#submit").html("Add Task");
+      $(".nfv").css("display", "block");
+      $("#task").val("");
+      $("#taskdesc").val("");
+      SetDate();
+      $("#status").val("N");
+      $("#priority").val("M");
+      $('#addTask input[type=checkbox]').prop('checked',false);
+      $( "#task" ).prop( "disabled", false );
+      $( "#taskdesc" ).prop( "disabled", false );
+      $("#DueDate").prop("disabled", false);
+      $("#status").prop("disabled", false);
+      $("#priority").prop("disabled", false);
+      $('#addTask input[type=checkbox]').attr('disabled',false);
     }
   </script>
 </head>
@@ -211,7 +298,7 @@
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header add">
-          Add A New Task
+          <span id = "addModalhead"> Add A New Task </span>
           <button type="button" class="close" data-dismiss="modal">&times;</button>
         </div>
         <div class="modal-body">
@@ -222,7 +309,7 @@
               </tr>
               <tr>
                 <th> <label for="taskdesc"> Description:  </label> </th>
-                <td> <input name="taskdesc" id="taskdesc" type="textarea"> </input> </td>
+                <td> <textarea name="taskdesc" id="taskdesc"> </textarea> </td>
               </tr>
               <tr>
                 <th> <label for="due_date"> Due Date: </label> </th>
@@ -267,8 +354,8 @@
           </p>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-danger" data-dismiss="modal">Cancel</button>
-          <button type="button" class="btn btn-primary" data-dismiss="modal" id="add" onclick="AddTask()">Add Task</button>
+          <button type="button" class="btn btn-danger nfv" onclick="RevertChanges()" data-dismiss="modal">Cancel</button>
+          <button type="button" class="btn btn-primary nfv" data-dismiss="modal" id="submit" onclick="AddTask()">Add Task</button>
         </div>
       </div>
     </div>
@@ -344,10 +431,10 @@
                           <a class="nav-link pl-0" href="/taskboard"><i class="fas fa-tasks fa-fw"></i> <span class="d-none d-md-inline">My Tasks</span></a>
                       </li>
                       <li class="nav-item">
-                          <a class="nav-link pl-0" href="#"><i class="fa fa-cog fa-fw"></i> <span class="d-none d-md-inline">Settings</span></a>
+                        <a class="nav-link pl-0" href="/labels"><i class="fas fa-tags"></i> <span class="d-none d-md-inline">My Labels</span></a>
                       </li>
                       <li class="nav-item">
-                          <a class="nav-link pl-0" href="#"><i class="fas fa-sign-out-alt fa-fw"></i> <span class="d-none d-md-inline">Sign Out</span></a>
+                          <a class="nav-link pl-0" href="/signout"><i class="fas fa-sign-out-alt fa-fw"></i> <span class="d-none d-md-inline">Sign Out</span></a>
                       </li>
                   </ul>
               </div>

@@ -36,7 +36,7 @@
       }
       if (message==""){
         $.post("/api/auth/signup/", {email: id, password: pwd, first_name:fname, last_name:lname}, function(data){
-          ;
+          alert("An email has been sent to your account. Verify your account before signing in");
         })
         .fail(function(){
           alert("User already exists.");
@@ -77,7 +77,7 @@
                 <tr> <td> <br> </td> </tr>
                 <tr>
                   <td>
-                    <input type="text" name="last_name" placeholder="Last Name"> </input>
+                    <input type="text" id="last_name" name="last_name" placeholder="Last Name"> </input>
                   </td>
                 </tr>
                 <tr> <td> <br> </td> </tr>
