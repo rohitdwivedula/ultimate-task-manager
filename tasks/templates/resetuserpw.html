@@ -3,7 +3,7 @@
 <!DOCTYPE html>
 <html lang='en-IN'>
 <head>
-  <title> UTM- Edit Profile </title>
+  <title> UTM- Password Reset </title>
   <meta name="viewport" content="width=device-width, initial-scale=1" charset="utf-8">
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css">
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
@@ -19,49 +19,37 @@
   <link rel="stylesheet" type="text/css" href="{% static 'tasks/taskboard.css' %}">
 
   <script>
-  //Sets minimum date for due date to today
-    function displayProfile(){ //Gets the tasks associated with the user and displays them.
-    $.ajax({
-    url: "/api/auth/me/",
-    headers: {"Authorization": "Bearer " + sessionStorage.getItem('access_token')},
-    type: "GET",
-    success: function(data){
-      console.log(data);
-      $("#first_name").val(data.first_name);
-      $("#last_name").val(data.last_name);
-      $("#email").html(data.email);
-      $("#bio").val(data.bio);
-     }
-  })
-  .fail(function(){
-     $(location).attr('href', '/login');
-  })
-}
-
-  function saveChanges(){
-    var fname = $("#first_name").val();
-    var lname =$("#last_name").val();
-    var bio = $("#bio").val();
-    $.ajax({
-    url: "/api/auth/me/",
-    headers: {"Authorization": "Bearer " + sessionStorage.getItem('access_token')},
-    type: "POST",
-    data: {first_name:fname , last_name:lname , bio: bio},
-    success: function(){
-      alert("Changes saved");
-      $(location).attr('href', '/profile');
+  $(document).ready(function(){
+    if (sessionStorage.getItem("access_token")==null){
+      $(location).attr('href', '/login');
     }
-  })
-  .fail(function(){
-     alert("Changes not saved");
-  })
-  }
-  function resetUserPassword(){
-    $(location).attr('href', '/resetuserpw');
+  });
+  function reset(){
+    var np = $("#new_password").val();
+    var cp = $("#confirm_password").val();
+
+    if(!(np==cp)){
+      alert("New password and confirm password do not match.")
+    } else{
+      $.ajax({
+      url: "/api/auth/reset/",
+      headers: {"Authorization": "Bearer " + sessionStorage.getItem('access_token')},
+      type: "POST",
+      data: {password:np},
+      success: function(data){
+        alert("Password changed successfully");
+        $(location).attr('href', '/profile');
+       }
+    })
+    .fail(function(){
+       alert("Password change failed");
+       $(location).attr('href', '/profile');
+    })
+    }
   }
   </script>
 </head>
-<body onload="displayProfile()">
+<body>
 <div class="container-fluid">
     <div class="row sticky-top">
       <div class="col">
@@ -94,32 +82,21 @@
         <main class="col bg-faded py-3 flex-grow-1">
           <div class="card">
             <div class="card-header">
-              Edit Account Information
+              Reset Password
             </div>
             <div class="card-body">
               <table>
                 <tr>
-                  <th> Email ID : </th>
-                  <td id="email"> </td>
+                  <th> New Password : </th>
+                  <td> <input type="password" id="new_password"> </input> </td>
                 </tr>
                 <tr>
-                  <th> First Name : </th>
-                  <td> <input type="text" id="first_name"> </input> </td>
-                </tr>
-                <tr>
-                  <th> Last Name : </th>
-                  <td> <input type="text" id="last_name"> </input> </td>
-                </tr>
-                <tr>
-                  <th> Bio: </th>
-                  <td> <input type="text" id="bio"> </td>
+                  <th> Confirm Password : </th>
+                  <td> <input type="password" id="confirm_password"> </input> </td>
                 </tr>
               </table>
-              <div style="float:right; margin:5px">
-                <button onclick="saveChanges()"> Save Changes </button>
-               </div>
                <div style="float:right; margin:5px">
-                 <button onclick="resetUserPassword()"> Reset Password </button>
+                 <button onclick="reset()"> Reset Password </button>
                 </div>
             </div>
           </div>

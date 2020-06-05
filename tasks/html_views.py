@@ -25,6 +25,9 @@ def profile_view(request):
 def editprofile_view(request):
 	return render(request, "editprofile.html")
 
+def resetuserpw_view(request):
+    return render(request, "resetuserpw.html")
+
 def signout_view(request):
     return render(request, "signout.html")
 
