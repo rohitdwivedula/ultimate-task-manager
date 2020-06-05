@@ -12,7 +12,26 @@
 
   <link rel="stylesheet" type="text/css" href="{% static 'tasks/headnav.css' %}">
   <link rel="stylesheet" type="text/css" href="{% static 'tasks/login.css' %}">
-
+  <script>
+  $(document).ready(function(){
+    $("form").submit(function(event){
+      event.preventDefault();
+      var id = $("#email").val();
+      $.ajax({
+      url: "/api/auth/forgot/",
+      type: "GET",
+      data: {"email": id},
+      success: function(data){
+        alert("Email sent with OTP");
+        $(location).attr('href', '/reset');
+       }
+    })
+    .fail(function(){
+       alert("Reset failed");
+    })
+    })
+  });
+  </script>
 </head>
 <body>
 <div class="container-fluid">
@@ -31,7 +50,7 @@
             Forgot Password
           </div>
           <div class="card-body">
-            <form id="forgotpw" method="GET" action="/forgot/">
+            <form id="form">
               <table style="margin:auto">
                 <tr>
                   <th><label class="fas fa-envelope" for="email"></label> </th>

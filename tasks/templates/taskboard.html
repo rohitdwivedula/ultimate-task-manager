@@ -133,11 +133,11 @@
       }
       DisplayTasks(data=fdata);
     }
-    function subtaskAdd(){
+    function subtaskView(){
       // Get the checkbox
       var checkBox = document.getElementById("subtaskcheck");
-      // Get the output text
-      var stb = document.getElementById("subtaskblock"); //stb=subtaskblock
+      // Get the div
+      var stb = document.getElementById("subtaskblock");
 
       // If the checkbox is checked, display the output text
       if (checkBox.checked == true){
@@ -145,6 +145,10 @@
       } else {
         stb.style.display = "none";
       }
+    }
+    function AddInput(){
+      $("#addinput").remove();
+      $("#subtaskblock").append('<input type="text" style="width:80%"> </input> <button id="addinput" style = "font-size:15px" class="add-button" onclick="AddInput()"> <i class="fas fa-plus-circle"></i> </button> <br>');
     }
     function GetData(){
       var data = {};
@@ -166,17 +170,31 @@
 
       var labels = new Array();
       $('#addTask').find('input[type="checkbox"]:checked').each(function(){
-        lab_id = this.id;
+        var lab_id = this.id;
         labels.push(lab_id);
       })
-      console.log(labels)
+
       data.labels = labels;
-      // data.labels = $().serializeArray(labels);
-      console.log(data);
+
       return data;
     }
+
     function AddTask(){
+      if (!($("#task").val())){
+        alert("Task name is required");
+        return;
+      }
       data = GetData(); //Consolidating the data
+      var subtasks = new Array();
+      $('#subtaskblock').find('input[type="text"]').each(function(){
+        var st = $(this).val();
+        if (st){
+          subtasks.push(st);
+        }
+      })
+      data.subtasks = subtasks;
+
+      console.log(data);
       //Making the request
       $.ajax({
         url: "/api/main/tasks/",
@@ -190,7 +208,8 @@
           "due_on": data.due_on,
           "status": data.status,
           "priority": data.priority,
-          "labels": JSON.stringify(data.labels)
+          "labels": JSON.stringify(data.labels),
+          "subtasks": JSON.stringify(data.subtasks)
         },
         success: function(taskdata){
           alert("Task created successfully")
@@ -265,6 +284,7 @@
         headers: {"Authorization": "Bearer " + sessionStorage.getItem('access_token')},
         type: "GET",
         success: function(data){
+          console.log(data);
           $("#task").val(data.name);
           $("#taskdesc").val(data.desc);
           $("#DueDate").val(data.due_on.slice(0,10));
@@ -311,6 +331,11 @@
       $("#status").prop("disabled", false);
       $("#priority").prop("disabled", false);
       $('#addTask input[type=checkbox]').attr('disabled',false);
+      $("#subtaskcheck").prop("checked", false);
+      $("#subtaskblock").css("display", "none");
+      $("#subtaskblock").empty();
+      $("#subtaskblock").append('<input type="text" style="width:80%"> </input> <button id="addinput" style = "font-size:15px" class="add-button" onclick="AddInput()"> <i class="fas fa-plus-circle"></i> </button> <br>');
+
     }
   </script>
 </head>
@@ -365,12 +390,14 @@
               <tr> </tr>
               <tr>
                 <td colspan=2>
-                  <input type="checkbox" id="subtaskcheck" onclick="subtaskAdd()">
-                  <label for="subtaskcheck"> Add sub-tasks</label><br>
+                  <input type="checkbox" name="subtaskcheck" id="subtaskcheck" onclick="subtaskView()">
+                  <label id="subtaskchecklabel" for="subtaskcheck"> Add sub-tasks</label><br>
               </tr>
           </table>
           <div id="subtaskblock" style="display:none">
-            How do I add sub-tasks?
+            <input type="text" style="width:80%"> </input>
+            <button id="addinput" style = "font-size:15px" class="add-button" onclick="AddInput()"> <i class="fas fa-plus-circle"></i> </button>
+            <br>
           </div>
           <p style="font-size:13px">
               <em> *Complete Tasks will be archived by default and will not appear on taskboard </em> </td>
