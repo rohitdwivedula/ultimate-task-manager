@@ -39,13 +39,13 @@
       $("#DueDate").val(year + "-" + month + "-" + day);
     }
     function DisplayTasks(data={"page":"1"}){
+         $("#taskboard").empty();
          $.ajax({
            url: "/api/main/tasks/",
            headers: {"Authorization": "Bearer " + sessionStorage.getItem('access_token')},
            type: "GET",
            data: data,
            success: function(taskdata){
-             $("#taskboard").empty();
              var len= taskdata.data.length;
              var color = "#20368F";
              for (var i=0; i<len; i++){
@@ -62,7 +62,10 @@
                else {
                  var labels = "";
                  for (var j=0; j<taskdata.data[i].labels.length; j++){
-                   labels = labels.concat(taskdata.data[i].labels[j].name + ' ');
+                   labels = labels.concat(taskdata.data[i].labels[j].name);
+                   if(j != (taskdata.data[i].labels.length-1)){
+                     labels = labels.concat(', ');
+                   }
 
                  }
                }
@@ -191,7 +194,7 @@
         },
         success: function(taskdata){
           alert("Task created successfully")
-          location.reload();
+          DisplayTasks();
         }
       })
       .fail(function(){
@@ -238,10 +241,18 @@
         url: url,
         headers: {"Authorization": "Bearer " + sessionStorage.getItem('access_token')},
         type: "POST",
-        data: data,
+        data:{
+          "name": data.name,
+          "desc": data.desc,
+          "status": data.status,
+          "due_on": data.due_on,
+          "status": data.status,
+          "priority": data.priority,
+          "labels": JSON.stringify(data.labels)
+        },
         success: function(data){
           alert("Edited successfully");
-          location.reload();
+          DisplayTasks();
         }
         })
         .fail(function(){

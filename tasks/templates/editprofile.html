@@ -26,7 +26,6 @@
     headers: {"Authorization": "Bearer " + sessionStorage.getItem('access_token')},
     type: "GET",
     success: function(data){
-      console.log(data);
       $("#first_name").val(data.first_name);
       $("#last_name").val(data.last_name);
       $("#email").html(data.email);
@@ -116,10 +115,10 @@
                 </tr>
               </table>
               <div style="float:right; margin:5px">
-                <button onclick="saveChanges()"> Save Changes </button>
+                <button class="editpb" onclick="saveChanges()"> Save Changes </button>
                </div>
                <div style="float:right; margin:5px">
-                 <button onclick="resetUserPassword()"> Reset Password </button>
+                 <button  class="editpb" onclick="resetUserPassword()"> Reset Password </button>
                 </div>
             </div>
           </div>

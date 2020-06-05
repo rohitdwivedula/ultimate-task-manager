@@ -30,6 +30,7 @@
 label{
 display:inline-block;
 margin-right: 30px;
+font-size:17px;
 }
 
 .add-button{
@@ -46,6 +47,22 @@ margin-right: 30px;
   font-weight: bold;
   font-size: 20px;
 }
-label {
-  font-size:17px;
+
+input[type="text"]:disabled {
+  background: white;
+  border: 0px;
+  color: black;
+}
+
+:disabled {
+  background: white;
+  border: 0px;
+  color: black;
+}
+
+.editpb{
+  background-color:#00172D ;
+  color: #CD9703;
+  padding: 10px;
+  border-radius:10px;
 }
