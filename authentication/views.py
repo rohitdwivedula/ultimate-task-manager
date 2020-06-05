@@ -104,7 +104,11 @@ class UserInformationView(APIView):
             'first_name': user.first_name,
             'last_name': user.last_name,
             'bio': user.bio,
-            'date_joined': user.date_joined
+            'date_joined': user.date_joined,
+            'email_notifications_enabled': user.email_notifications_enabled,
+            'discord_notifications_enabled': user.discord_notifications_enabled,
+            'discord_webhook_url': user.discord_webhook_url,
+            'remind_duration': user.remind_duration
         }
         return Response(message, status=status.HTTP_200_OK)
 
@@ -120,6 +124,14 @@ class UserInformationView(APIView):
         	user.last_name = payload['last_name']
         if 'bio' in payload:
         	user.bio = payload['bio']
+        if 'email_notifications_enabled' in payload:
+        	user.email_notifications_enabled = payload['email_notifications_enabled']
+        if 'discord_notifications_enabled' in payload:
+        	user.discord_notifications_enabled = payload['discord_notifications_enabled']
+        if 'discord_webhook_url' in payload:
+        	user.discord_webhook_url = payload['discord_webhook_url']
+        if 'remind_duration' in payload:
+        	user.remind_duration = payload['remind_duration']
         
         user.save()
 

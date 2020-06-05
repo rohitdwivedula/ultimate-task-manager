@@ -21,6 +21,7 @@ class AllTasksView(APIView):
             if key != "page":
                 filters[key] = request.GET[key]
         try:
+            print(filters)
             tasks = Task.objects.filter(**filters).order_by("due_on")
             paginator = PageNumberPagination()
             paginator.page_size = 15
@@ -32,7 +33,7 @@ class AllTasksView(APIView):
                 "count": len(result_page),
                 "data": serializer.data
             })
-        except:
+        except KeyError:
             return Response(data={
                 "message": "Bad request. The allowed fields are given in this response. You can use standard Django Queryset filters",
                 "allowed_fields": "created_at, desc, due_on, labels, name, status, subtasks, user, user_id, uuid"

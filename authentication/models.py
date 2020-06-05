@@ -3,6 +3,7 @@ from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, Permis
 from django.utils.timezone import now
 from django.conf import settings
 from django.core.mail import send_mail
+from django.core.validators import MaxValueValidator, MinValueValidator
 
 class UserManager(BaseUserManager):
     """
@@ -43,6 +44,12 @@ class User(AbstractBaseUser, PermissionsMixin):
     date_joined = models.DateTimeField(default=now, blank=True)
     ip_address = models.GenericIPAddressField(null=True, blank=True)
     is_verified = models.BooleanField(default=False)
+    two_factor_enabled = models.BooleanField(default=False)
+
+    email_notifications_enabled = models.BooleanField(default=False)
+    discord_notifications_enabled = models.BooleanField(default=False)
+    discord_webhook_url = models.URLField(default='')
+    remind_duration = models.PositiveIntegerField(default=10, validators=[MinValueValidator(1), MaxValueValidator(100)])
 
     verification_token = models.CharField(max_length=64, blank=True, null=True)
     generated_at = models.DateTimeField(null=True, blank=True)

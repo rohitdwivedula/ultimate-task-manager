@@ -77,17 +77,22 @@ Returns the basic information of current user. Response format:
 
 ```
 {
-    "first_name": "Test", 
-    "last_name": "User", 
-    "bio": "This is my bio", 
-    "email": "test@gmail.com"
+    "email": "f20170029@hyderabad.bits-pilani.ac.in",
+    "first_name": "RohitRohitRohitRohit",
+    "last_name": "DDDD",
+    "bio": "I am very cool kkkk",
+    "date_joined": "2020-06-04T16:19:51Z",
+    "email_notifications_enabled": true,
+    "discord_notifications_enabled": false,
+    "discord_webhook_url": "https://discord.com/api/webhooks/7983928392838720013/qMuY9xogbFYx0MOPKzcUgUxIS2TX7k",
+    "remind_duration": 5
 }
 ```
 
 
 ## [POST] /me/ (requires login)
 
-Update user information: `first_name, last_name, bio`. Only send the attributes that need to be updated (you can edit only first name by just sending `{"first_name": "New Name Here"}` as the post body. 
+Update user information: `first_name, last_name, bio, email_notifications_enabled, discord_notifications_enabled, discord_webhook_url, remind_duration`. Only send the attributes that need to be updated (you can edit only first name by just sending `{"first_name": "New Name Here"}` as the post body. 
 
 ```
 {

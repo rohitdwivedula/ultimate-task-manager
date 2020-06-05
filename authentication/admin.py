@@ -28,7 +28,8 @@ class UserAdmin(BaseUserAdmin):
         ('Personal info', {'fields': ('first_name', 'last_name', 'bio')}),
         ('Groups', {'fields': ('groups', )}),
         ('Permissions', {'fields': ('is_superuser',)}),
-        ('Security Info', {'fields': ('date_joined', 'ip_address', 'generated_at', 'verification_token', 'is_verified')})
+        ('Security Info', {'fields': ('date_joined', 'ip_address', 'generated_at', 'verification_token', 'is_verified')}),
+        ('Settings',{'fields': ('email_notifications_enabled', 'discord_notifications_enabled', 'discord_webhook_url', 'remind_duration')})
     )
 
     # add_fieldsets is not a standard ModelAdmin attribute. UserAdmin
