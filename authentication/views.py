@@ -13,6 +13,7 @@ from authentication.conf import JWT_COOKIE_KEY
 
 from django.http import HttpResponse
 from django.views.generic import View
+import pyotp
 
 class SignupView(APIView):
     """View class for signing up to the service"""
@@ -63,17 +64,24 @@ class LoginView(APIView):
             if not user:
                 message = {'error': "Account not found"}
                 return Response(message, status=status.HTTP_403_FORBIDDEN)
-
             if not user.is_verified:
                 if UserHelper.set_new_activation_token(user, save_user=True):
                     UserHelper.send_activation_email(user, request)
                 message = {'error': "Email not verified. Verify email and try again."}
                 return Response(message, status=status.HTTP_403_FORBIDDEN)
-
             if not UserHelper.check_user_credentials(user, password):
                 message = {'error': "Invalid email or password"}
                 return Response(message, status=status.HTTP_403_FORBIDDEN)
-
+            if user.two_factor_enabled:
+                if "otp" not in payload:
+                    message = {'error': "User has 2FA enabled. otp not found or is invalid."}
+                    return Response(message, status=status.HTTP_403_FORBIDDEN)
+                otp_sent = payload['otp']
+                totp = pyotp.TOTP(user.two_factor_secret)
+                if not totp.verify(otp_sent):
+                    message = {'error': "User has 2FA enabled. otp not found or is invalid."}
+                    return Response(message, status=status.HTTP_403_FORBIDDEN)
+            
             refresh = RefreshToken.for_user(user)
             access_token = str(refresh.access_token)
             refresh_token = str(refresh)
@@ -296,3 +304,27 @@ class VerifyEmailView(APIView):
         except (KeyError):
             message = {'message': "Invalid token or email id"}
             return Response(message, status=status.HTTP_400_BAD_REQUEST)
+
+
+class TwoFactorView(APIView):
+    permission_classes = (IsAuthenticated, )
+    def get(self, request):
+        user = request.user
+        user.two_factor_enabled = True
+        user.two_factor_secret = pyotp.random_base32()
+        user.save()
+        message = {
+            'message': '2FA enabled.',
+            'secret': user.two_factor_secret,
+            'uri': pyotp.totp.TOTP(user.two_factor_secret).provisioning_uri(user.email, issuer_name="Ultimate Task Manager")
+        }
+        return Response(message, status=status.HTTP_200_OK)
+
+    def delete(self, request):
+        user = request.user
+        user.two_factor_enabled = False
+        user.save()
+        message = {
+            'message': '2FA disabled successfully'
+        }
+        return Response(message, status=status.HTTP_200_OK)

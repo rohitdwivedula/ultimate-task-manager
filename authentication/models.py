@@ -38,25 +38,29 @@ class User(AbstractBaseUser, PermissionsMixin):
             * verification_token -- token used to activate email and reset passwords
             * generated_at -- time at which `verification_token` was generated
     """
+
+    ## basic information
     email = models.EmailField(unique=True)
     first_name = models.CharField(max_length=30, null=True, blank=True)
     last_name = models.CharField(max_length=30, null=True, blank=True)
     date_joined = models.DateTimeField(default=now, blank=True)
     ip_address = models.GenericIPAddressField(null=True, blank=True)
-    is_verified = models.BooleanField(default=False)
-    two_factor_enabled = models.BooleanField(default=False)
+    bio = models.TextField(max_length=280, blank=True)
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = []
 
+    ## authentication
+    is_verified = models.BooleanField(default=False)
+    verification_token = models.CharField(max_length=64, blank=True, null=True)
+    generated_at = models.DateTimeField(null=True, blank=True)
+    two_factor_enabled = models.BooleanField(default=False)
+    two_factor_secret = models.CharField(max_length=25, null=True)
+
+    ## notifications
     email_notifications_enabled = models.BooleanField(default=False)
     discord_notifications_enabled = models.BooleanField(default=False)
     discord_webhook_url = models.URLField(default='')
     remind_duration = models.PositiveIntegerField(default=10, validators=[MinValueValidator(1), MaxValueValidator(100)])
-
-    verification_token = models.CharField(max_length=64, blank=True, null=True)
-    generated_at = models.DateTimeField(null=True, blank=True)
-
-    bio = models.TextField(max_length=280, blank=True)
-    USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = []
 
     objects = UserManager()
 

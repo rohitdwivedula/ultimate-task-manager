@@ -23,12 +23,14 @@ Endpoint for registering a new user.
 
 ## [POST] /login/
 
-Login an existing user. Works only if email has been verified.
+Login an existing user. Works only if email has been verified. If 2FA is enabled an 'otp' field must be present with the user OTP. OTP must be sent as string. Two enable/disable 2FA see the `/2fa` endpoint. 
+
 **Request Format:**
 ```
 {
     "email": "ghost@gmail.com",
     "password": "123456789",
+    "otp": "123456"
 }
 ```
 
@@ -53,6 +55,22 @@ Reset password of a user.
 **Response**:
 * *Status 200*: `{"STATUS": "Password reset successful"}`
 * *Status 206*: Password not changed due to missing attributes. Contains a key `MISSING` with a list of missing attributes.
+
+## [GET, DELETE] /2fa (sign in required)
+GET request to enable 2FA and DELETE request to remove 2FA. Sample formats:
+```
+{
+    "message": "2FA enabled.",
+    "secret": "RVSWUIUYOQBNR7DW",
+    "uri": "otpauth://totp/Ultimate%20Task%20Manager:f20170029%40hyderabad.bits-pilani.ac.in?secret=RVSWUIUYOQBNR7DW&issuer=Ultimate%20Task%20Manager"
+}
+
+{
+    "message": "2FA disabled successfully"
+}
+```
+
+Make a QR code in the front end using the "uri" parameter returned in the message. Users can scan this with Google Authenticator or similar apps to setup 2FA. 
 
 ## [POST] /refresh/
 Refresh an `access_token` and `refresh_token` using a valid `refresh_token`. The `refresh_token` and outstanding `access_token` are revoked.
