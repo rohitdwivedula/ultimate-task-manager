@@ -38,6 +38,15 @@
       $("#DueDate").attr('min', year + "-" + month + "-" + day);
       $("#DueDate").val(year + "-" + month + "-" + day);
     }
+    function Next(pageno){
+      var req_page = (Number(pageno)+1).toString();
+      DisplayTasks({"page": req_page})
+    }
+    function Prev (pageno){
+      var req_page = (Number(pageno)-1).toString();
+      console.log(req_page);
+      DisplayTasks({"page": req_page})
+    }
     function DisplayTasks(data={"page":"1"}){
          $("#taskboard").empty();
          $.ajax({
@@ -46,6 +55,18 @@
            type: "GET",
            data: data,
            success: function(taskdata){
+             $("#next").attr("onclick", "Next('" + taskdata.current_page + "')")
+             $("#prev").attr("onclick", "Prev('" + taskdata.current_page + "')")
+             if (taskdata.current_page=="1"){
+               $("#prev").css("display", "none");
+             }else{
+               $("#prev").css("display", "inline");
+             }
+             if(taskdata.current_page==taskdata.total_pages){
+               $("#next").css("display", "none");
+             } else {
+               $("#next").css("display", "inline");
+             }
              var len= taskdata.data.length;
              var color = "#20368F";
              for (var i=0; i<len; i++){
@@ -81,7 +102,7 @@
            }
          })
          .fail(function(){
-           $(location).attr('href', '/login');
+           //$(location).attr('href', '/login');
          })
        }
     function AddLabels(){
@@ -194,7 +215,6 @@
       })
       data.subtasks = subtasks;
 
-      console.log(data);
       //Making the request
       $.ajax({
         url: "/api/main/tasks/",
@@ -244,6 +264,9 @@
     }
     function EditTask(taskid){
       $("#addModalhead").html("Edit Task");
+      $("#existing_subtasks").html("<p> <b> Subtasks: </b> </p> ");
+      $("#subtaskcheck").css("display", "none");
+      $("#subtaskchecklabel").css("display", "none");
       var url = ("/api/main/tasks/").concat(taskid);
       url = url.concat('/');
       var func= ("SubmitEdit('").concat(url);
@@ -251,6 +274,7 @@
       $("#submit").attr("onclick", func);
       $("#submit").html("Edit Task");
       GetTask(url);
+      EditViewSubTask(url);
 
 
     }
@@ -284,7 +308,6 @@
         headers: {"Authorization": "Bearer " + sessionStorage.getItem('access_token')},
         type: "GET",
         success: function(data){
-          console.log(data);
           $("#task").val(data.name);
           $("#taskdesc").val(data.desc);
           $("#DueDate").val(data.due_on.slice(0,10));
@@ -292,7 +315,6 @@
           $("#priority").val(data.priority);
           data.labels.forEach(function(item){
             $("#"+item.uuid).prop("checked", true);
-
           })
         }
         })
@@ -300,13 +322,75 @@
           return NULL;
         })
     }
+    function ViewSubTask(url){
+      $.ajax({
+        url: url,
+        headers: {"Authorization": "Bearer " + sessionStorage.getItem('access_token')},
+        type: "GET",
+        success: function(data){
+          data.subtasks.forEach(function(item){
+            $("#existing_subtasks").append('&emsp;<input type="checkbox" disabled="true" id='+ item.uuid+'><label for='+ item.uuid + '> '+ item.name + '</label><br> </td>');
+            if(!(item.status=='ND')){
+              $("#"+item.uuid).prop("checked", true);
+            }
+          })
+        }
+        })
+        .fail(function(){
+          return NULL;
+        })
+    }
+    function EditViewSubTask(url){
+      $.ajax({
+        url: url,
+        headers: {"Authorization": "Bearer " + sessionStorage.getItem('access_token')},
+        type: "GET",
+        success: function(data){
+          data.subtasks.forEach(function(item){
+            $("#existing_subtasks").append('&emsp;<input type="checkbox" onclick="ChangeStatus(\'' + item.uuid + '\')" id='+ item.uuid+'><label for='+ item.uuid + '> '+ item.name + '</label><br> </td>');
+            if(!(item.status=='ND')){
+              $("#"+item.uuid).prop("checked", true);
+            }
+          })
+        }
+        })
+        .fail(function(){
+          return NULL;
+        })
+    }
+
+    function ChangeStatus(subtaskid){
+      var url = ("/api/main/subtasks/").concat(subtaskid);
+      url = url.concat('/');
+      if ($("#"+subtaskid).prop("checked")){
+        var status = "D";
+      }
+      else {
+        var status = "ND";
+      }
+      $.ajax({
+        url: url,
+        headers: {"Authorization": "Bearer " + sessionStorage.getItem('access_token')},
+        type: "POST",
+        data: {"status": status}
+        })
+        .fail(function(){
+          return 0;
+        })
+
+
+    }
     function ViewTask(taskid){
       //Make changes
       $("#addModalhead").html("Task Details");
+      $("#existing_subtasks").html("<p> <b> Subtasks: </b> </p> ");
+      $("#subtaskcheck").css("display", "none");
+      $("#subtaskchecklabel").css("display", "none");
       $(".nfv").css("display", "none");
       var url = ("/api/main/tasks/").concat(taskid);
       var url = url.concat('/');
       GetTask(url);
+      ViewSubTask(url);
       $( "#task" ).prop( "disabled", true );
       $( "#taskdesc" ).prop( "disabled", true );
       $("#DueDate").prop("disabled", true);
@@ -331,11 +415,13 @@
       $("#status").prop("disabled", false);
       $("#priority").prop("disabled", false);
       $('#addTask input[type=checkbox]').attr('disabled',false);
+      $('#existing_subtasks').empty();
       $("#subtaskcheck").prop("checked", false);
       $("#subtaskblock").css("display", "none");
       $("#subtaskblock").empty();
       $("#subtaskblock").append('<input type="text" style="width:80%"> </input> <button id="addinput" style = "font-size:15px" class="add-button" onclick="AddInput()"> <i class="fas fa-plus-circle"></i> </button> <br>');
-
+      $("#subtaskcheck").css("display", "inline");
+      $("#subtaskchecklabel").css("display", "inline");
     }
   </script>
 </head>
@@ -386,6 +472,8 @@
               </tr>
             </table>
             <!-- The table ended here so that append can be used to dynamically add the labels-->
+            <div id="existing_subtasks">
+            </div>
             <table>
               <tr> </tr>
               <tr>
@@ -399,7 +487,7 @@
             <button id="addinput" style = "font-size:15px" class="add-button" onclick="AddInput()"> <i class="fas fa-plus-circle"></i> </button>
             <br>
           </div>
-          <p style="font-size:13px">
+          <p  style="font-size:13px">
               <em> *Complete Tasks will be archived by default and will not appear on taskboard </em> </td>
           </p>
         </div>
@@ -509,6 +597,10 @@
             <div class="card-body">
               <div class="row" id="taskboard">
               </div>
+            </div>
+            <div class="card-footer">
+              <button type ="button" id="prev" onlick="" class="btn btn-primary"> Prev </button>
+              <button type ="button" id="next" onclick="" style="float:right" class="btn btn-primary"> Next </button>
             </div>
           </div>
         </main>
