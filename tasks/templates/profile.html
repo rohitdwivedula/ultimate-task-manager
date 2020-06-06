@@ -30,7 +30,7 @@
       $("#first_name").html(data.first_name);
       $("#last_name").html(data.last_name);
       $("#email").html(data.email);
-      $("#discord").html(data.discord_webhook_url);
+      $("#discord").html(data.discord_webhook_url.slice(0, 40) + "...");
       $("#ph_n").html(data.phone);
       $("#bio").html(data.bio);
       if (data.email_notifications_enabled){
@@ -97,7 +97,7 @@
             </div>
             <div class="card-body">
               <h4> <u> Personal Details </u> </h4>
-              <h6> <em> Note: A valid Discord webhook is required for Discord notifications to be sent. </em> </h6>
+              <h6> <em> Note: A valid Discord webhook is required for Discord notifications to be sent. Find out more <a href="https://support.discord.com/hc/en-us/articles/228383668-Intro-to-Webhooks" target="_blank">here</a> </em> </h6>
               <table>
                 <tr>
                   <th> Email ID: </th>

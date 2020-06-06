@@ -28,16 +28,21 @@ class Command(BaseCommand):
                         user.email_user(subject, message)
                         self.stdout.write(self.style.SUCCESS('Emailed "%s" a reminder.' % user.email))
                     if user.discord_notifications_enabled:
-                        url = user.discord_webhook_url
-                        content = {
-                            'username': 'Ultimate Tasks | Reminder',
-                            'content': message
-                        }
-                        response = requests.post(url, data = content)
-                        print(response)
-                        if response.status_code in [200, 204]:
-                            self.stdout.write(self.style.SUCCESS('Discord message sent to "%s" a reminder.' % user.email))
-                        else:
-                            self.stdout.write(self.style.ERROR('Discord message could not be sent to "%s".' % user.email))
+                        try:
+                            url = user.discord_webhook_url
+                            content = {
+                                'username': 'Ultimate Tasks | Reminder',
+                                'content': message
+                            }
+                            response = requests.post(url, data = content)
+                            print(response)
+                            if response.status_code in [200, 204]:
+                                self.stdout.write(self.style.SUCCESS('Discord message sent to "%s" a reminder.' % user.email))
+                            else:
+                                self.stdout.write(self.style.ERROR('Discord message could not be sent to "%s".' % user.email))
+                        except requests.exceptions.ConnectionError:
+                            self.stdout.write(self.style.ERROR('Discord message could not be sent to "%s". URL: %s' % (user.email, user.discord_webhook_url)))
+                else:
+                    self.stdout.write(self.style.SUCCESS('No notifications needed for "%s".' % user.email))
             else:
                 self.stdout.write(self.style.SUCCESS('Reminder updates not enabled for "%s"' % user.email))

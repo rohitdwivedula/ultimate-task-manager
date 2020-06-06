@@ -116,7 +116,8 @@ class UserInformationView(APIView):
             'email_notifications_enabled': user.email_notifications_enabled,
             'discord_notifications_enabled': user.discord_notifications_enabled,
             'discord_webhook_url': user.discord_webhook_url,
-            'remind_duration': user.remind_duration
+            'remind_duration': user.remind_duration,
+            'two_factor_enabled': user.two_factor_enabled
         }
         return Response(message, status=status.HTTP_200_OK)
 
