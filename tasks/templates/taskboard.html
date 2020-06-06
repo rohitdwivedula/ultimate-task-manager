@@ -213,7 +213,6 @@
           subtasks.push(st);
         }
       })
-      data.subtasks = subtasks;
 
       //Making the request
       $.ajax({
@@ -231,8 +230,12 @@
           "labels": JSON.stringify(data.labels),
           "subtasks": JSON.stringify(data.subtasks)
         },
-        success: function(taskdata){
-          alert("Task created successfully")
+        success: function(data){
+          for (var i=0; i<subtasks.length; i++){
+            var surl = ("/api/main/tasks/").concat(data.task_uuid);
+            surl = surl.concat('/');
+            SubmitSubtask(surl, subtasks[i]);
+          }
           DisplayTasks();
         }
       })
@@ -354,7 +357,7 @@
         type: "GET",
         success: function(data){
           data.subtasks.forEach(function(item){
-            $("#existing_subtasks").append('&emsp;<input type="checkbox" disabled="true" id='+ item.uuid+'><label for='+ item.uuid + '> '+ item.name + '</label><br> </td>');
+            $("#existing_subtasks").append('&emsp;<input type="checkbox" onclick="ChangeStatus(\'' + item.uuid + '\')" id='+ item.uuid+'><label for='+ item.uuid + '> '+ item.name + '</label><br> </td>');
             if(!(item.status=='ND')){
               $("#"+item.uuid).prop("checked", true);
             }
