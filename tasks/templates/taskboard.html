@@ -47,7 +47,10 @@
       console.log(req_page);
       DisplayTasks({"page": req_page})
     }
-    function DisplayTasks(data={"page":"1"}){
+    function ViewArchive(){
+      DisplayTasks(data={"page":"1", "status__in":"['C']"})
+    }
+    function DisplayTasks(data={"page":"1", "status__in":"['IP', 'N']"}){
          $("#taskboard").empty();
          $.ajax({
            url: "/api/main/tasks/",
@@ -102,7 +105,7 @@
            }
          })
          .fail(function(){
-           //$(location).attr('href', '/login');
+           $(location).attr('href', '/login');
          })
        }
     function AddLabels(){
@@ -611,6 +614,12 @@
             <div class="card-header">
               My Tasks
               <!-- The button is wrapped in a span to use 2 data toggle arguments -->
+              <span style= "float:right" data-toggle="tooltip" title="View Archived Tasks">
+                <button class="add-button" onclick="ViewArchive()">
+                  <i class="fas fa-archive"></i>
+                </button>
+              </span>
+
               <span style= "float:right" data-toggle="tooltip" title="Filter Tasks">
                 <button class="add-button" data-toggle="modal" data-target="#filterModal">
                   <i class="fas fa-filter"></i>
@@ -629,6 +638,10 @@
             <div class="card-footer">
               <button type ="button" id="prev" onlick="" class="btn btn-primary"> Prev </button>
               <button type ="button" id="next" onclick="" style="float:right" class="btn btn-primary"> Next </button>
+              <button type ="button" style="display:none" id="filterprev" onlick="" class="btn btn-primary"> Prev </button>
+              <button type ="button" style="display:none" id="filternext" onclick="" style="float:right" class="btn btn-primary"> Next </button>
+              <button type ="button" style="display:none" id="archiveprev" onlick="" class="btn btn-primary"> Prev </button>
+              <button type ="button" style="display:none" id="archivenext" onclick="" style="float:right" class="btn btn-primary"> Next </button>
             </div>
           </div>
         </main>

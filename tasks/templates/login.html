@@ -23,7 +23,6 @@
         data.email = id;
         data.password = pwd;
         if($("#tfacheck").prop("checked")){
-          console.log("Hello");
           data.otp = otp;
         }
         $.post("/api/auth/login/", data, function(data){
