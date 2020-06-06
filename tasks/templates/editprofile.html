@@ -26,10 +26,23 @@
     headers: {"Authorization": "Bearer " + sessionStorage.getItem('access_token')},
     type: "GET",
     success: function(data){
+      console.log(data);
       $("#first_name").val(data.first_name);
       $("#last_name").val(data.last_name);
       $("#email").html(data.email);
       $("#bio").val(data.bio);
+      $("#discord").val(data.discord_webhook_url);
+      if(data.email_notifications_enabled){
+        $("#email_notification").val("True");
+      } else{
+        $("#email_notification").val("False");
+      }
+      if(data.discord_notifications_enabled){
+        $("#discord_notification").val("True");
+      } else{
+        $("#discord_notification").val("False");
+      }
+      $('#rem').val(data.remind_duration);
      }
   })
   .fail(function(){
@@ -41,13 +54,23 @@
     var fname = $("#first_name").val();
     var lname =$("#last_name").val();
     var bio = $("#bio").val();
+    var webhook = $("#discord").val();
+    var en = $("#email_notification").val();
+    var dn = $("#discord_notification").val();
+    var rem = $("#rem").val();
     $.ajax({
     url: "/api/auth/me/",
     headers: {"Authorization": "Bearer " + sessionStorage.getItem('access_token')},
     type: "POST",
-    data: {first_name:fname , last_name:lname , bio: bio},
+    data: {first_name:fname,
+      last_name:lname,
+      bio: bio,
+      discord_webhook_url: webhook,
+      email_notifications_enabled: en,
+      discord_notifications_enabled:dn,
+      remind_duration: rem
+    },
     success: function(){
-      alert("Changes saved");
       $(location).attr('href', '/profile');
     }
   })
@@ -96,10 +119,16 @@
               Edit Account Information
             </div>
             <div class="card-body">
+              <h4> <u> Personal Details </u> </h4>
+              <h6> <em> Note: A valid Discord webhook is required for Discord notifications to be sent. </em> </h6>
               <table>
                 <tr>
                   <th> Email ID : </th>
                   <td id="email"> </td>
+                </tr>
+                <tr>
+                  <th> Discord Webhook: </th>
+                  <td> <input type="text" id="discord"> </input> </td>
                 </tr>
                 <tr>
                   <th> First Name : </th>
@@ -112,6 +141,29 @@
                 <tr>
                   <th> Bio: </th>
                   <td> <input type="text" id="bio"> </td>
+                </tr>
+              </table>
+              <br>
+              <h4> <u> Notification Preferences </u> </h4>
+              <h6> <em> Note: Reminders will only be sent if either email or Discord notifications are enabled. </em> </h6>
+              <table>
+                <tr>
+                  <th> Email Notifications: </th>
+                  <td><select name="email_notification" id="email_notification">
+                    <option value="False">No</option>
+                    <option value="True">Yes</option>
+                  </select></td>
+                </tr>
+                <tr>
+                  <th> Discord Notifications: </th>
+                  <td><select name="discord_notification" id="discord_notification">
+                    <option value="False">No</option>
+                    <option value="True">Yes</option>
+                  </select></td>
+                </tr>
+                <tr>
+                  <th> Reminders: </th>
+                  <td> <input type="number" id="rem" style="width:27%" min=1 max=99> </input> </td>
                 </tr>
               </table>
               <div style="float:right; margin:5px">

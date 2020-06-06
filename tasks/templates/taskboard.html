@@ -265,8 +265,6 @@
     function EditTask(taskid){
       $("#addModalhead").html("Edit Task");
       $("#existing_subtasks").html("<p> <b> Subtasks: </b> </p> ");
-      $("#subtaskcheck").css("display", "none");
-      $("#subtaskchecklabel").css("display", "none");
       var url = ("/api/main/tasks/").concat(taskid);
       url = url.concat('/');
       var func= ("SubmitEdit('").concat(url);
@@ -280,6 +278,13 @@
     }
     function SubmitEdit(url){
       var data = GetData();
+      var subtasks = new Array();
+      $('#subtaskblock').find('input[type="text"]').each(function(){
+        var st = $(this).val();
+        if (st){
+          subtasks.push(st);
+        }
+      })
       $.ajax({
         url: url,
         headers: {"Authorization": "Bearer " + sessionStorage.getItem('access_token')},
@@ -294,12 +299,32 @@
           "labels": JSON.stringify(data.labels)
         },
         success: function(data){
-          alert("Edited successfully");
+          for (var i=0; i<subtasks.length; i++){
+            SubmitSubtask(url, subtasks[i]);
+          }
           DisplayTasks();
         }
         })
         .fail(function(){
           alert("Editing error");
+        })
+    }
+    function SubmitSubtask(url, subtask){
+      url = url.concat('subtask/');
+      $.ajax({
+        url: url,
+        headers: {"Authorization": "Bearer " + sessionStorage.getItem('access_token')},
+        type: "POST",
+        data:{
+          "name": subtask,
+          "status": "ND"
+        },
+        success: function(data){
+          console.log("Subtask created");
+        }
+        })
+        .fail(function(){
+          console.log("Error");
         })
     }
     function GetTask(url){

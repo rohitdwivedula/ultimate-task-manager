@@ -26,11 +26,24 @@
     headers: {"Authorization": "Bearer " + sessionStorage.getItem('access_token')},
     type: "GET",
     success: function(data){
+      console.log(data);
       $("#first_name").html(data.first_name);
       $("#last_name").html(data.last_name);
       $("#email").html(data.email);
+      $("#discord").html(data.discord_webhook_url);
       $("#ph_n").html(data.phone);
       $("#bio").html(data.bio);
+      if (data.email_notifications_enabled){
+        $("#email_notification").html("Yes");
+      } else{
+        $("#email_notification").html("No");
+      }
+      if(data.discord_notifications_enabled){
+        $("#discord_notification").html("Yes");
+      } else{
+        $("#discord_notification").html("No");
+      }
+      $("#rem").html((data.remind_duration.toString()).concat(" days before the due date."));
      }
   })
   .fail(function(){
@@ -83,17 +96,23 @@
               </span>
             </div>
             <div class="card-body">
+              <h4> <u> Personal Details </u> </h4>
+              <h6> <em> Note: A valid Discord webhook is required for Discord notifications to be sent. </em> </h6>
               <table>
                 <tr>
-                  <th> Email ID : </th>
+                  <th> Email ID: </th>
                   <td id="email"> </td>
                 </tr>
                 <tr>
-                  <th> First Name : </th>
+                  <th> Discord Webhook: </th>
+                  <td id="discord"> </td>
+                </tr>
+                <tr>
+                  <th> First Name: </th>
                   <td id="first_name"> </td>
                 </tr>
                 <tr>
-                  <th> Last Name : </th>
+                  <th> Last Name: </th>
                   <td id="last_name"> </td>
                 </tr>
                 <tr>
@@ -101,7 +120,23 @@
                   <td id="bio"> </td>
                 </tr>
               </table>
-
+              <br>
+              <h4> <u> Notification Preferences </u> </h4>
+              <h6> <em> Note: Reminders will only be sent if either email or Discord notifications are enabled. </em> </h6>
+              <table>
+                <tr>
+                  <th> Email Notifications: </th>
+                  <td id="email_notification"></td>
+                </tr>
+                <tr>
+                  <th> Discord Notifications: </th>
+                  <td id="discord_notification"> </td>
+                </tr>
+                <tr>
+                  <th> Reminders: </th>
+                  <td id="rem"> </td>
+                </tr>
+              </table>
             </div>
           </div>
         </main>
