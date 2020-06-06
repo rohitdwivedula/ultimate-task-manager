@@ -357,7 +357,7 @@
         type: "GET",
         success: function(data){
           data.subtasks.forEach(function(item){
-            $("#existing_subtasks").append('&emsp;<input type="checkbox" disabled="true" id='+ item.uuid+'><label for='+ item.uuid + '> '+ item.name + '</label><br> </td>');
+            $("#existing_subtasks").append('&emsp;<input type="checkbox" onclick="ChangeStatus(\'' + item.uuid + '\')" id='+ item.uuid+'><label for='+ item.uuid + '> '+ item.name + '</label><br> </td>');
             if(!(item.status=='ND')){
               $("#"+item.uuid).prop("checked", true);
             }
