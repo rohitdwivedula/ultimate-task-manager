@@ -79,7 +79,10 @@ class AllTasksView(APIView):
                         message['error'] = 'Subtask validation failed. Subtask which caused this error provided below.'
                         message['subtask'] = subtask
                         return Response(data=message, status=status.HTTP_400_BAD_REQUEST)
-            message = {'success': 'Task created.'}
+            message = {
+            	'success': 'Task created.',
+            	'task_uuid': new_task.uuid
+            }
             return Response(data=message, status=status.HTTP_200_OK)
         except IntegrityError:
             message = {'error': 'Internal Server Error. No edits made.'}
