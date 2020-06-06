@@ -213,7 +213,6 @@
           subtasks.push(st);
         }
       })
-      data.subtasks = subtasks;
 
       //Making the request
       $.ajax({
@@ -231,8 +230,12 @@
           "labels": JSON.stringify(data.labels),
           "subtasks": JSON.stringify(data.subtasks)
         },
-        success: function(taskdata){
-          alert("Task created successfully")
+        success: function(data){
+          for (var i=0; i<subtasks.length; i++){
+            var surl = ("/api/main/tasks/").concat(data.task_uuid);
+            surl = surl.concat('/');
+            SubmitSubtask(surl, subtasks[i]);
+          }
           DisplayTasks();
         }
       })
