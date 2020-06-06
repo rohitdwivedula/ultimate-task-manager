@@ -18,7 +18,14 @@
         event.preventDefault();
         var id = $("#email").val();
         var pwd = $("#pwd").val();
-        $.post("/api/auth/login/", {email: id, password: pwd}, function(data){
+        var otp = $("#otp").val();
+        data={};
+        data.email = id;
+        data.password = pwd;
+        if($("#tfacheck").prop("checked")){
+          data.otp = otp;
+        }
+        $.post("/api/auth/login/", data, function(data){
           sessionStorage.setItem('access_token', data.access_token);
           sessionStorage.setItem('refresh_token', data.refresh_token);
           $(location).attr('href', '/profile');
@@ -28,6 +35,13 @@
         })
       });
     });
+    function tfaview(){
+      if($("#tfacheck").prop("checked")){
+        $("#tfarow").css("display", "table-row");
+      } else {
+        $("#tfarow").css("display", "none");
+      }
+    }
   </script>
 
 </head>
@@ -67,7 +81,18 @@
                   <td colspan=2> <a href="/forgot" style="font-size:12px;float:right"> Forgot Password? </a> </td>
                 </tr>
                 <tr> <td> <br> </td> </tr>
+                <tr id="tfarow" style="display:none">
+                  <th><label class="fas fa-key" for="otp"></label> </th>
+                  <td>
+                    <input type="text" id="otp" name = "otp" placeholder="OTP"> </input>
+                  </td>
+                </tr>
               </table>
+              <div>
+                <input type="checkbox" style="width:5%" name="tfacheck" id="tfacheck" onclick="tfaview()">
+                <label id="tfachecklabel" for="tfacheck"> I have 2FA enabled</label>
+              </div>
+              <div>
               <input type="submit" style="width:30%" value="Login"> </input>
               <!-- <button id="submit_button" value="Submit" name="Submit">Submit</button> -->
             </form>

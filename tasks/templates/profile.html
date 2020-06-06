@@ -14,9 +14,72 @@
   integrity="sha384-vFJXuSJphROIrBnz7yo7oB41mKfc8JzQZiCq4NCceLEaO4IHwicKwpJf9c9IpFgh" crossorigin="anonymous"></script>
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/js/bootstrap.min.js"
   integrity="sha384-alpBpkh1PFOepccYVYDB4do5UnbKysX5WZXm3XxPqe5iKTfUKjNkCk9SaVuEZflJ" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.qrcode/1.0/jquery.qrcode.min.js"> </script>
 
   <link rel="stylesheet" type="text/css" href="{% static 'tasks/headnav.css' %}">
   <link rel="stylesheet" type="text/css" href="{% static 'tasks/taskboard.css' %}">
+
+  <style>
+  .switch {
+    position: relative;
+    display: inline-block;
+    width: 60px;
+    height: 34px;
+  }
+
+  .switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+
+  .slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    -webkit-transition: .4s;
+    transition: .4s;
+  }
+
+  .slider:before {
+    position: absolute;
+    content: "";
+    height: 26px;
+    width: 26px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    -webkit-transition: .4s;
+    transition: .4s;
+  }
+
+  input:checked + .slider {
+    background-color: #2196F3;
+  }
+
+  input:focus + .slider {
+    box-shadow: 0 0 1px #2196F3;
+  }
+
+  input:checked + .slider:before {
+    -webkit-transform: translateX(26px);
+    -ms-transform: translateX(26px);
+    transform: translateX(26px);
+  }
+
+  /* Rounded sliders */
+  .slider.round {
+    border-radius: 34px;
+  }
+
+  .slider.round:before {
+    border-radius: 50%;
+  }
+  </style>
 
   <script>
   //Sets minimum date for due date to today
@@ -31,7 +94,6 @@
       $("#last_name").html(data.last_name);
       $("#email").html(data.email);
       $("#discord").html(data.discord_webhook_url.slice(0, 40) + "...");
-      $("#ph_n").html(data.phone);
       $("#bio").html(data.bio);
       if (data.email_notifications_enabled){
         $("#email_notification").html("Yes");
@@ -44,6 +106,11 @@
         $("#discord_notification").html("No");
       }
       $("#rem").html((data.remind_duration.toString()).concat(" days before the due date."));
+      if(data.two_factor_enabled){
+        $("#twofatoggle").prop("checked", true);
+      } else {
+        $("#twofatoggle").prop("checked", false);
+      }
      }
   })
   .fail(function(){
@@ -53,10 +120,63 @@
   function editProfile() {
       $(location).attr('href', '/editprofile');
   };
+  function twofa(){
+    if($("#twofatoggle").prop('checked')){
+      $.ajax({
+      url: "/api/auth/2fa/",
+      headers: {"Authorization": "Bearer " + sessionStorage.getItem('access_token')},
+      type: "GET",
+      success: function(data){
+        $('#qrcode').qrcode(data.uri);
+        $("#secret").html(data.secret);
+        $('#myModal').modal('show');
+      }
+    })
+    .fail(function(){
+       $(location).attr('href', '/login');
+    })
+  } else{
+    $("#qrcode").empty();
+    $.ajax({
+    url: "/api/auth/2fa/",
+    headers: {"Authorization": "Bearer " + sessionStorage.getItem('access_token')},
+    type: "DELETE",
+  })
+  .fail(function(){
+     $(location).attr('href', '/login');
+  })
+  }
+}
   </script>
 </head>
 <body onload="displayProfile()">
 <div class="container-fluid">
+  <!-- The Modal -->
+<div class="modal" id="myModal">
+  <div class="modal-dialog">
+    <div class="modal-content">
+
+      <!-- Modal Header -->
+      <div class="modal-header add">
+        Scan QR Code
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+      </div>
+
+      <!-- Modal body -->
+      <div class="modal-body" style="text-align: center">
+        <div style="text-align:left"> Two-factor authentication has been enabled. Scan the QR Code below with Google Authenticator (or any equivalent) for your next login </div>
+        <div style="display: inline-block" id="qrcode"></div>
+        <div id="secret"> </div>
+      </div>
+
+      <!-- Modal footer -->
+      <div class="modal-footer">
+        <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+      </div>
+
+    </div>
+  </div>
+</div>
     <div class="row sticky-top">
       <div class="col">
         <header>
@@ -135,6 +255,17 @@
                 <tr>
                   <th> Reminders: </th>
                   <td id="rem"> </td>
+                </tr>
+              </table>
+              <br>
+              <h4> <u> Security Preferences </u> </h4>
+              <table>
+                <tr>
+                  <label class="switch">
+                    <input type="checkbox" id="twofatoggle" onclick="twofa()">
+                    <span class="slider round"></span>
+                  </label>
+                  <span>  Enable 2-factor authentication </span>
                 </tr>
               </table>
             </div>
