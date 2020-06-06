@@ -11,7 +11,7 @@ urlpatterns = [
     path('refresh/', TokenRefreshView.as_view()),
     path('me/', api_views.UserInformationView.as_view()),
     path('forgot/', api_views.ForgotPasswordView.as_view()),
-    path('verify/', api_views.VerifyEmailView.as_view()),
+    path('verify/', api_views.verify_view),
     path('2fa/', api_views.TwoFactorView.as_view()),
 ]
 

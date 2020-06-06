@@ -12,6 +12,7 @@ from authentication.helper import UserHelper
 from authentication.conf import JWT_COOKIE_KEY
 
 from django.http import HttpResponse
+from django.shortcuts import render
 from django.views.generic import View
 import pyotp
 
@@ -252,59 +253,42 @@ class ForgotPasswordView(APIView):
             message = {'error': 'Invalid schema'}
             return Response(message, status=status.HTTP_400_BAD_REQUEST)
 
-class VerifyEmailView(APIView):
-    def get(self, request):
-        payload = request.GET
+def verify_view(request):
+    payload = request.GET
+    try:
+        email = payload['email']
+        token = payload['token']
+        if not token:
+            return render(request, "verified.html", {'message':"Invalid email or token", 'verified': False})
 
-        try:
-            email = payload['email']
-            token = payload['token']
+        user = User.objects.filter(email=email)
+        if not user:
+            return render(request, "verified.html", {'message':"Invalid email or token", 'verified':False})
+        user = user[0]
 
-            if not token:
-                message = {'error': "Invalid Email ID or token"}
-                return Response(message, status=status.HTTP_400_BAD_REQUEST)
+        if user.is_verified:
+        	return render(request, "verified.html", {'message':"Your email has already been verified before.", 'verified':False})
 
-            user = User.objects.filter(email=email)
-            if not user:
-                message = {'message': "Invalid Email ID or token"}
-                return Response(message, status=status.HTTP_400_BAD_REQUEST)
-
-            user = user[0]
-
-            if user.is_verified:
-                message = {'message': "Email already verified"}
-                return Response(message, status=status.HTTP_200_OK)
-
-            timediff = (timezone.now() - user.generated_at).total_seconds()
-            if timediff > 86400:
-                # verification timed out, delete their old token
-                # and generate new token and email it to them
-                user.verification_token = UserHelper.generate_token(64)
-                user.generated_at = timezone.now()
-                user.save()
-
-                UserHelper.send_activation_email(user, request)
-
-                message = {'message': "Link expired. New link has been emailed to you"}
-                return Response(message, status=status.HTTP_200_OK)
-
-            if not user.verification_token == token:
-                message = {'message': "Invalid token or email id"}
-                return Response(message, status=status.HTTP_200_OK)
-
-            user.is_verified = True
-            # invaldidate the the verification_token
-            user.verification_token = UserHelper.generate_token(8)
+        timediff = (timezone.now() - user.generated_at).total_seconds()
+        if timediff > 86400:
+            # verification timed out, delete their old token
+            # and generate new token and email it to them
+            user.verification_token = UserHelper.generate_token(64)
+            user.generated_at = timezone.now()
             user.save()
 
-            message = "Your account has been activated. Happy planning!"
-            user.email_user("Ultimate Task Manager - Account Activated", message)
-            message = {"message": message}
-            return Response(message, status=status.HTTP_200_OK)
-
-        except (KeyError):
-            message = {'message': "Invalid token or email id"}
-            return Response(message, status=status.HTTP_400_BAD_REQUEST)
+            UserHelper.send_activation_email(user, request)
+            return render(request, "verified.html", {'message':"Your email was NOT verified because the link expired. \
+            	A new link has been emailed to you", 'verified':False})
+        if not user.verification_token == token:
+            return render(request, "verified.html", {'message':"Your email was NOT verified - invalid token or email id", 'verified':False})
+        user.is_verified = True
+        # invaldidate the the verification_token
+        user.verification_token = UserHelper.generate_token(8)
+        user.save()
+        return render(request, "verified.html", {'message':"Your account has been activated. Happy planning!", 'verified':True})
+    except (KeyError):
+    	return render(request, "verified.html", {'message':"Your account has not been activated. Something went wrong.", 'verified':False})
 
 
 class TwoFactorView(APIView):
