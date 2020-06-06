@@ -23,6 +23,7 @@
         data.email = id;
         data.password = pwd;
         if($("#tfacheck").prop("checked")){
+          console.log("Hello");
           data.otp = otp;
         }
         $.post("/api/auth/login/", data, function(data){
@@ -30,8 +31,12 @@
           sessionStorage.setItem('refresh_token', data.refresh_token);
           $(location).attr('href', '/profile');
         })
-        .fail(function(){
-          alert("Invalid Login Credentials.\nTry again.");
+        .fail(function(data){
+          if (data.responseJSON.error=="User has 2FA enabled. otp not found or is invalid."){
+            alert("This account has 2FA enabled.\n OTP not found or invalid.");
+          } else {
+            alert("Invalid Login Credits");
+          }
         })
       });
     });
@@ -84,9 +89,10 @@
                 <tr id="tfarow" style="display:none">
                   <th><label class="fas fa-key" for="otp"></label> </th>
                   <td>
-                    <input type="text" id="otp" name = "otp" placeholder="OTP"> </input>
+                    <input type="password" id="otp" name = "otp" placeholder="OTP"> </input>
                   </td>
                 </tr>
+                <tr> <td> <br> </td> </tr>
               </table>
               <div>
                 <input type="checkbox" style="width:5%" name="tfacheck" id="tfacheck" onclick="tfaview()">
