@@ -38,34 +38,48 @@
       $("#DueDate").attr('min', year + "-" + month + "-" + day);
       $("#DueDate").val(year + "-" + month + "-" + day);
     }
-    function Next(pageno){
+    function Next(data){
+      var pageno = data.page;
       var req_page = (Number(pageno)+1).toString();
-      DisplayTasks({"page": req_page})
+      data.page = req_page;
+      DisplayTasks(data=data);
     }
-    function Prev (pageno){
+    function Prev (data){
+      var pageno = data.page;
       var req_page = (Number(pageno)-1).toString();
-      console.log(req_page);
-      DisplayTasks({"page": req_page})
+      data.page = req_page;
+      console.log(data);
+      DisplayTasks(data=data);
     }
     function ViewArchive(){
+      $("#archive_icon").removeClass('fa-archive').addClass('fa-inbox');
+      $("#archive_button").attr("onclick", "ViewCurrent()");
+      $("#archive_tooltip").attr("title", "View Current Tasks");
       DisplayTasks(data={"page":"1", "status__in":"['C']"})
+    }
+    function ViewCurrent(){
+      $("#archive_icon").addClass('fa-archive').removeClass('fa-inbox');
+      $("#archive_button").attr("onclick", "ViewArchive()");
+      $("#archive_tooltip").attr("title", "View Archived Tasks");
+      DisplayTasks();
     }
     function DisplayTasks(data={"page":"1", "status__in":"['IP', 'N']"}){
          $("#taskboard").empty();
+         var sdata = JSON.stringify(data);
+         $("#next").attr("onclick", "Next(" + sdata + ")")
+         $("#prev").attr("onclick", "Prev(" + sdata + ")")
          $.ajax({
            url: "/api/main/tasks/",
            headers: {"Authorization": "Bearer " + sessionStorage.getItem('access_token')},
            type: "GET",
            data: data,
            success: function(taskdata){
-             $("#next").attr("onclick", "Next('" + taskdata.current_page + "')")
-             $("#prev").attr("onclick", "Prev('" + taskdata.current_page + "')")
-             if (taskdata.current_page=="1"){
+             if (taskdata.current_page=="1" || taskdata.count==0){
                $("#prev").css("display", "none");
              }else{
                $("#prev").css("display", "inline");
              }
-             if(taskdata.current_page==taskdata.total_pages){
+             if(taskdata.current_page==taskdata.total_pages || taskdata.count==0){
                $("#next").css("display", "none");
              } else {
                $("#next").css("display", "inline");
@@ -155,6 +169,7 @@
       if (selected_priority){
         fdata.priority = selected_priority;
       }
+      fdata.status__in= "['IP', 'N']";
       DisplayTasks(data=fdata);
     }
     function subtaskView(){
@@ -614,9 +629,9 @@
             <div class="card-header">
               My Tasks
               <!-- The button is wrapped in a span to use 2 data toggle arguments -->
-              <span style= "float:right" data-toggle="tooltip" title="View Archived Tasks">
-                <button class="add-button" onclick="ViewArchive()">
-                  <i class="fas fa-archive"></i>
+              <span id="archive_tooltip" style= "float:right" data-toggle="tooltip" title="View Archived Tasks">
+                <button id="archive_button" class="add-button" onclick="ViewArchive()">
+                  <i id="archive_icon" class="fas fa-archive"></i>
                 </button>
               </span>
 
@@ -636,12 +651,8 @@
               </div>
             </div>
             <div class="card-footer">
-              <button type ="button" id="prev" onlick="" class="btn btn-primary"> Prev </button>
-              <button type ="button" id="next" onclick="" style="float:right" class="btn btn-primary"> Next </button>
-              <button type ="button" style="display:none" id="filterprev" onlick="" class="btn btn-primary"> Prev </button>
-              <button type ="button" style="display:none" id="filternext" onclick="" style="float:right" class="btn btn-primary"> Next </button>
-              <button type ="button" style="display:none" id="archiveprev" onlick="" class="btn btn-primary"> Prev </button>
-              <button type ="button" style="display:none" id="archivenext" onclick="" style="float:right" class="btn btn-primary"> Next </button>
+              <button type ="button" id="prev" style="display:none" onlick="" class="btn btn-primary"> Prev </button>
+              <button type ="button" id="next" style="display:none" onclick="" style="float:right" class="btn btn-primary"> Next </button>
             </div>
           </div>
         </main>
