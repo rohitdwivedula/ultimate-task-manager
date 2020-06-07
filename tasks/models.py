@@ -46,6 +46,10 @@ class SubTask(models.Model):
         choices=SubTaskStatus.choices,
         default = SubTaskStatus.NOT_DONE
     )
+    created_at = models.DateTimeField(default=now)
 
     def __str__(self):
     	return self.task.user.first_name.lower() + "_" + self.task.name
+
+    class Meta:
+        ordering = ['created_at']

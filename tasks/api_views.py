@@ -44,7 +44,6 @@ class AllTasksView(APIView):
         try:
             user = request.user
             payload = request.data
-            print(payload)
             new_task = Task(user=user, name=payload['name'], desc=payload['desc'], due_on=payload['due_on'])
             if "priority" in payload:
                 if payload["priority"] not in ['L', 'M', 'H']:
@@ -53,7 +52,7 @@ class AllTasksView(APIView):
                     return Response(data=message, status=status.HTTP_400_BAD_REQUEST)
                 new_task.priority = payload["priority"]
             if "status" in payload:
-                if payload["priority"] not in ['N', 'IP', 'C']:
+                if payload["status"] not in ['N', 'IP', 'C']:
                     transaction.set_rollback(True)
                     message = {'error': 'status must be N, IP, C'}
                     return Response(data=message, status=status.HTTP_400_BAD_REQUEST)
