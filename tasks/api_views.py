@@ -52,6 +52,12 @@ class AllTasksView(APIView):
                     message = {'error': 'priority must be L, M, H'}
                     return Response(data=message, status=status.HTTP_400_BAD_REQUEST)
                 new_task.priority = payload["priority"]
+            if "status" in payload:
+                if payload["priority"] not in ['N', 'IP', 'C']:
+                    transaction.set_rollback(True)
+                    message = {'error': 'status must be N, IP, C'}
+                    return Response(data=message, status=status.HTTP_400_BAD_REQUEST)
+                new_task.status = payload["status"]
             new_task.save()
             if "labels" in payload:
                 values = json.loads(payload['labels'])

@@ -35,7 +35,6 @@ class Command(BaseCommand):
                                 'content': message
                             }
                             response = requests.post(url, data = content)
-                            print(response)
                             if response.status_code in [200, 204]:
                                 self.stdout.write(self.style.SUCCESS('Discord message sent to "%s" a reminder.' % user.email))
                             else:
