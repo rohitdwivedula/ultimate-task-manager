@@ -80,9 +80,10 @@ class LoginView(APIView):
                 otp_sent = payload['otp']
                 totp = pyotp.TOTP(user.two_factor_secret)
                 if not totp.verify(otp_sent):
+                    print(totp.now())
                     message = {'error': "User has 2FA enabled. otp not found or is invalid."}
                     return Response(message, status=status.HTTP_403_FORBIDDEN)
-            
+
             refresh = RefreshToken.for_user(user)
             access_token = str(refresh.access_token)
             refresh_token = str(refresh)
@@ -142,7 +143,7 @@ class UserInformationView(APIView):
         	user.discord_webhook_url = payload['discord_webhook_url']
         if 'remind_duration' in payload:
         	user.remind_duration = payload['remind_duration']
-        
+
         user.save()
 
         message = {'success': "Successfully updated user information"}
@@ -203,7 +204,7 @@ class ForgotPasswordView(APIView):
                     # split the otp into two 4-digit halves
                     verification_token_str = str(user.verification_token)
                     message = "Your OTP for password reset is " + verification_token_str + " \n\n Please do not share with anyone. Best."
-                    user.email_user("UltimateTaskManager - Forgot Password", message)	
+                    user.email_user("UltimateTaskManager - Forgot Password", message)
             message = {'success': 'Email with OTP sent, if associated account exists222'}
             return Response(message, status=status.HTTP_200_OK)
         except KeyError:
