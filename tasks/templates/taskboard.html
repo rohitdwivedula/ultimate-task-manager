@@ -55,12 +55,16 @@
       $("#archive_icon").removeClass('fa-archive').addClass('fa-inbox');
       $("#archive_button").attr("onclick", "ViewCurrent()");
       $("#archive_tooltip").attr("title", "View Current Tasks");
+      $("#filter_span").css("display", "none");
+      $("#add_span").css("display", "none");
       DisplayTasks(data={"page":"1", "status__in":"['C']"})
     }
     function ViewCurrent(){
       $("#archive_icon").addClass('fa-archive').removeClass('fa-inbox');
       $("#archive_button").attr("onclick", "ViewArchive()");
       $("#archive_tooltip").attr("title", "View Archived Tasks");
+      $("#filter_span").css("display", "inline");
+      $("#add_span").css("display", "inline");
       DisplayTasks();
     }
     function DisplayTasks(data={"page":"1", "status__in":"['IP', 'N']"}){
@@ -635,12 +639,12 @@
                 </button>
               </span>
 
-              <span style= "float:right" data-toggle="tooltip" title="Filter Tasks">
+              <span  id="filter_span" style= "float:right" data-toggle="tooltip" title="Filter Tasks">
                 <button class="add-button" data-toggle="modal" data-target="#filterModal">
                   <i class="fas fa-filter"></i>
                 </button>
               </span>
-              <span style= "float:right" data-toggle="tooltip" title="Add a New Task">
+              <span id="add_span" style= "float:right" data-toggle="tooltip" title="Add a New Task">
                 <button class="add-button" data-toggle="modal" data-target="#addModal">
                   <i class="fas fa-plus"></i>
                 </button>
