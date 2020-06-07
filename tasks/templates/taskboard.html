@@ -70,8 +70,9 @@
     function DisplayTasks(data={"page":"1", "status__in":"['IP', 'N']"}){
          $("#taskboard").empty();
          var sdata = JSON.stringify(data);
-         $("#next").attr("onclick", "Next(" + sdata + ")")
-         $("#prev").attr("onclick", "Prev(" + sdata + ")")
+         $("#next").attr("onclick", "Next(" + sdata + ")");
+         $("#prev").attr("onclick", "Prev(" + sdata + ")");
+         $("#search_text").attr("onkeyup", "Search("+sdata +")");
          $.ajax({
            url: "/api/main/tasks/",
            headers: {"Authorization": "Bearer " + sessionStorage.getItem('access_token')},
@@ -297,7 +298,7 @@
       $("#submit").attr("onclick", func);
       $("#submit").html("Edit Task");
       GetTask(url);
-      EditViewSubTask(url);
+      ViewSubTask(url);
 
 
     }
@@ -382,24 +383,9 @@
             $("#existing_subtasks").append('&emsp;<input type="checkbox" onclick="ChangeStatus(\'' + item.uuid + '\')" id='+ item.uuid+'><label for='+ item.uuid + '> '+ item.name + '</label><br> </td>');
             if(!(item.status=='ND')){
               $("#"+item.uuid).prop("checked", true);
-            }
-          })
-        }
-        })
-        .fail(function(){
-          return NULL;
-        })
-    }
-    function EditViewSubTask(url){
-      $.ajax({
-        url: url,
-        headers: {"Authorization": "Bearer " + sessionStorage.getItem('access_token')},
-        type: "GET",
-        success: function(data){
-          data.subtasks.forEach(function(item){
-            $("#existing_subtasks").append('&emsp;<input type="checkbox" onclick="ChangeStatus(\'' + item.uuid + '\')" id='+ item.uuid+'><label for='+ item.uuid + '> '+ item.name + '</label><br> </td>');
-            if(!(item.status=='ND')){
-              $("#"+item.uuid).prop("checked", true);
+              $("[for="+item.uuid+"]").css("text-decoration", "line-through");
+              $("[for="+item.uuid+"]").css("font-style", "italic");
+              $("[for="+item.uuid+"]").css("color", "#A9A9A9");
             }
           })
         }
@@ -412,11 +398,19 @@
     function ChangeStatus(subtaskid){
       var url = ("/api/main/subtasks/").concat(subtaskid);
       url = url.concat('/');
+      var label = ($("[for="+subtaskid+"]"))
       if ($("#"+subtaskid).prop("checked")){
         var status = "D";
+        label.css("text-decoration", "line-through");
+        label.css("font-style", "italic");
+        label.css("color", "#A9A9A9");
+
       }
       else {
         var status = "ND";
+        label.css("text-decoration", "");
+        label.css("font-style", "");
+        label.css("color", "");
       }
       $.ajax({
         url: url,
@@ -472,6 +466,29 @@
       $("#subtaskblock").append('<input type="text" style="width:80%"> </input> <button id="addinput" style = "font-size:15px" class="add-button" onclick="AddInput()"> <i class="fas fa-plus-circle"></i> </button> <br>');
       $("#subtaskcheck").css("display", "inline");
       $("#subtaskchecklabel").css("display", "inline");
+    }
+    function ShowSearchBar(){
+      if($("#search_bar").css("display")=="none"){
+        $("#search_bar").css("display", "inline");
+        $("#filter_span").css("display", "none");
+        $("#add_span").css("display", "none");
+        $("#archive_tooltip").css("display", "none");
+      } else {
+        $("#search_bar").css("display", "none");
+        $("#filter_span").css("display", "inline");
+        $("#add_span").css("display", "inline");
+        $("#archive_tooltip").css("display", "inline");
+        DisplayTasks();
+      }
+    }
+    function Search(data){
+      if ($("#search_text").val()){
+        data.name__contains = $("#search_text").val();
+      } else{
+        data.name__contains= "";
+      }
+      console.log(data);
+      DisplayTasks(data=data);
     }
   </script>
 </head>
@@ -633,12 +650,20 @@
             <div class="card-header">
               My Tasks
               <!-- The button is wrapped in a span to use 2 data toggle arguments -->
+              <span id="search_bar" style= "display:none; float:right">
+                <input id="search_text" onkeyup="" type="text" style="border-radius:15px; font-size:17px; padding-left:2px" placeholder="Enter Task Name...">
+                </input>
+              </span>
+              <span id="search_span" style= "float:right" data-toggle="tooltip" title="Search Tasks">
+                <button class="add-button" onclick="ShowSearchBar()">
+                  <i class="fas fa-search"></i>
+                </button>
+              </span>
               <span id="archive_tooltip" style= "float:right" data-toggle="tooltip" title="View Archived Tasks">
                 <button id="archive_button" class="add-button" onclick="ViewArchive()">
                   <i id="archive_icon" class="fas fa-archive"></i>
                 </button>
               </span>
-
               <span  id="filter_span" style= "float:right" data-toggle="tooltip" title="Filter Tasks">
                 <button class="add-button" data-toggle="modal" data-target="#filterModal">
                   <i class="fas fa-filter"></i>
