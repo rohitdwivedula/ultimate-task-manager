@@ -31,11 +31,8 @@
           $(location).attr('href', '/profile');
         })
         .fail(function(data){
-          if (data.responseJSON.error=="User has 2FA enabled. otp not found or is invalid."){
-            alert("This account has 2FA enabled.\n OTP not found or invalid.");
-          } else {
-            alert("Invalid Login Credits");
-          }
+            alert("Invalid Login Credits.");
+
         })
       });
     });

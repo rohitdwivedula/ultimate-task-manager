@@ -57,6 +57,7 @@
       $("#archive_tooltip").attr("title", "View Current Tasks");
       $("#filter_span").css("display", "none");
       $("#add_span").css("display", "none");
+      $("#search_span").css("display", "none");
       DisplayTasks(data={"page":"1", "status__in":"['C']"})
     }
     function ViewCurrent(){
@@ -65,6 +66,7 @@
       $("#archive_tooltip").attr("title", "View Archived Tasks");
       $("#filter_span").css("display", "inline");
       $("#add_span").css("display", "inline");
+      $("#search_span").css("display", "inline");
       DisplayTasks();
     }
     function DisplayTasks(data={"page":"1", "status__in":"['IP', 'N']"}){
@@ -281,6 +283,12 @@
             success: function(data){
               alert("Task deleted successfully");
               DisplayTasks();
+              $("#archive_icon").addClass('fa-archive').removeClass('fa-inbox');
+              $("#archive_button").attr("onclick", "ViewArchive()");
+              $("#archive_tooltip").attr("title", "View Archived Tasks");
+              $("#filter_span").css("display", "inline");
+              $("#add_span").css("display", "inline");
+              $("#search_span").css("display", "inline");
             }
             })
             .fail(function(){
@@ -329,6 +337,12 @@
             SubmitSubtask(url, subtasks[i]);
           }
           DisplayTasks();
+          $("#filter_span").css("display", "inline");
+          $("#add_span").css("display", "inline");
+          $("#search_span").css("display", "inline");
+          $("#archive_icon").addClass('fa-archive').removeClass('fa-inbox');
+          $("#archive_button").attr("onclick", "ViewArchive()");
+          $("#archive_tooltip").attr("title", "View Archived Tasks");
         }
         })
         .fail(function(){

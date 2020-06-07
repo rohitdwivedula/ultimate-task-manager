@@ -41,7 +41,7 @@
       if (message==""){
         $.post("/api/auth/signup/", {email: id, password: pwd, first_name:fname, last_name:lname}, function(data){
           alert("An email has been sent to your account. Verify your account before signing in");
-          $(location).attr('href' '/login');
+          $(location).attr('href', '/login');
         })
         .fail(function(){
           alert("User already exists.");
@@ -54,7 +54,7 @@
     })
   })
   function validatePassword(password) {
-
+    console.log("hello");
     // Do not show anything when the length of password is zero.
     if (password.length === 0) {
         document.getElementById("msg").innerHTML = "";
