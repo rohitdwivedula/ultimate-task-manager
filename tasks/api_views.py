@@ -52,9 +52,9 @@ class AllTasksView(APIView):
                     return Response(data=message, status=status.HTTP_400_BAD_REQUEST)
                 new_task.priority = payload["priority"]
             if "status" in payload:
-                if payload["status"] not in ['N', 'IP', 'C']:
+                if payload["status"] not in ['N', 'I', 'C']:
                     transaction.set_rollback(True)
-                    message = {'error': 'status must be N, IP, C'}
+                    message = {'error': 'status must be N, I, C'}
                     return Response(data=message, status=status.HTTP_400_BAD_REQUEST)
                 new_task.status = payload["status"]
             new_task.save()
@@ -66,7 +66,7 @@ class AllTasksView(APIView):
                         if not label_obj:
                             transaction.set_rollback(True)
                             message = {'error': 'label not found'}
-                            return Response(data=message, status=status.HTTP_400_BAD_REQUEST)    
+                            return Response(data=message, status=status.HTTP_400_BAD_REQUEST)
                         new_task.labels.add(label_obj[0])
                     except (ValidationError, KeyError):
                         transaction.set_rollback(True)
@@ -144,13 +144,13 @@ class TaskView(APIView):
             if "status" in payload:
                 if payload["status"] == 'N':
                     task.status = 'N'
-                elif payload["status"] == 'IP':
-                    task.status = 'IP'
+                elif payload["status"] == 'I':
+                    task.status = 'I'
                 elif payload["status"] == 'C':
                     task.status = 'C'
                 else:
                     transaction.set_rollback(True)
-                    message = {'error': 'Acceptable task statuses are: N, IP, C only. No edits made'}
+                    message = {'error': 'Acceptable task statuses are: N, I, C only. No edits made'}
                     return Response(data=message, status=status.HTTP_400_BAD_REQUEST)
             if "priority" in payload:
                 if payload["priority"] not in ['L', 'M', 'H']:
@@ -168,7 +168,7 @@ class TaskView(APIView):
                         if not label_obj:
                             transaction.set_rollback(True)
                             message = {'error': 'label not found. No edits made'}
-                            return Response(data=message, status=status.HTTP_400_BAD_REQUEST)    
+                            return Response(data=message, status=status.HTTP_400_BAD_REQUEST)
                         task.labels.add(label_obj[0])
                     except (ValidationError, KeyError):
                         transaction.set_rollback(True)
@@ -202,8 +202,8 @@ class AllLabelsView(APIView):
             return Response(data=message, status=status.HTTP_200_OK)
         else:
             message = {'error': 'invalid schema'}
-            return Response(data=message, status=status.HTTP_400_BAD_REQUEST)    
-        
+            return Response(data=message, status=status.HTTP_400_BAD_REQUEST)
+
 
 class LabelView(APIView):
     permission_classes = (IsAuthenticated, )
@@ -319,7 +319,7 @@ class AllSubTaskView(APIView):
         except Task.DoesNotExist:
             message = {'error': 'Task ID associated with signed in user does not exist.'}
             return Response(data=message, status=status.HTTP_400_BAD_REQUEST)
-    
+
     def post(self, request, task_uuid):
         user = request.user
         payload = request.data

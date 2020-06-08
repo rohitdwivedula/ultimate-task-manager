@@ -69,7 +69,8 @@
       $("#search_span").css("display", "inline");
       DisplayTasks();
     }
-    function DisplayTasks(data={"page":"1", "status__in":"['IP', 'N']"}){
+    function DisplayTasks(data={"page":"1", "status__in":"IN"}){
+         console.log(data);
          $("#taskboard").empty();
          var sdata = JSON.stringify(data);
          $("#next").attr("onclick", "Next(" + sdata + ")");
@@ -176,7 +177,7 @@
       if (selected_priority){
         fdata.priority = selected_priority;
       }
-      fdata.status__in= "['IP', 'N']";
+      fdata.status__in= "IN";
       DisplayTasks(data=fdata);
     }
     function subtaskView(){
@@ -542,7 +543,7 @@
                 <th> <label for="status">Status:</label> </th>
                 <td> <select name="status" id = "status">
                   <option value="N">New</option>
-                  <option value="IP">In-Progress</option>
+                  <option value="I">In-Progress</option>
                   <option value="C">Complete*</option>
                 </select> </td>
               </tr>

@@ -8,12 +8,12 @@ class Label(models.Model):
     uuid = models.UUIDField(primary_key=True, default=uuid.uuid4)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     name = models.TextField(max_length=24, verbose_name='Label Name')
-    description = models.TextField(max_length=150, blank=True) 
+    description = models.TextField(max_length=150, blank=True)
     created_at = models.DateTimeField(default=now)
 
     def __str__(self):
     	return self.user.first_name.lower() + "_" + self.name
-    
+
 class Task(models.Model):
     uuid = models.UUIDField(primary_key=True, default=uuid.uuid4)
     user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name = 'Created By')
@@ -21,7 +21,6 @@ class Task(models.Model):
     desc = models.TextField(max_length = 1000, verbose_name='Task Description')
     created_at = models.DateTimeField(default=now)
     due_on = models.DateTimeField(default=now)
-    status = models.BooleanField()
     priority = models.CharField(
         max_length=2,
         choices=Priority.choices,
